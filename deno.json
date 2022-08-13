@@ -1,0 +1,42 @@
+{
+  "$schema": "https://deno.land/x/deno/cli/schemas/config-file.v1.json",
+  "compilerOptions": {
+    "allowJs": false,
+    "strict": true,
+    "strictNullChecks": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": true,
+    "strictFunctionTypes": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "noImplicitReturns": true,
+    "noImplicitOverride": true,
+    "noUnusedParameters": true,
+    "noUncheckedIndexedAccess": true,
+    "noStrictGenericChecks": true,
+    "noUnusedLocals": true
+  },
+  "lint": {
+    "rules": {
+      "tags": ["recommended"],
+      "include": [
+        "ban-untagged-todo",
+        "camelcase",
+        "eqeqeq",
+        "explicit-function-return-type",
+        "no-const-assign",
+        "no-eval",
+        "no-non-null-asserted-optional-chain",
+        "no-non-null-assertion",
+        "no-sparse-arrays",
+        "no-throw-literal",
+        "no-top-level-await",
+        "no-undef",
+        "prefer-ascii",
+        "single-var-declarator",
+        "triple-slash-reference"
+      ]
+    }
+  }
+}
