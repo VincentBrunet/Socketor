@@ -9,14 +9,14 @@ export class VRxOperatorMapObservable<Input, Output>
   implements VRxObservable<Output> {
   private _observable: VRxObservable<Input>;
   private _handler: VRxOperatorMapHandler<Input, Output>;
-  constructor(
+  public constructor(
     observable: VRxObservable<Input>,
     handler: VRxOperatorMapHandler<Input, Output>,
   ) {
     this._observable = observable;
     this._handler = handler;
   }
-  subscribe(observer: VRxObserver<Output>): VRxSubscription {
+  public subscribe(observer: VRxObserver<Output>): VRxSubscription {
     return this._observable.subscribe(
       new VRxObserverDelegate((input: Input): void => {
         observer.onValue(this._handler(input));
@@ -29,14 +29,14 @@ export class VRxOperatorMapObserver<Input, Output>
   implements VRxObserver<Input> {
   private _observer: VRxObserver<Output>;
   private _handler: VRxOperatorMapHandler<Input, Output>;
-  constructor(
+  public constructor(
     observer: VRxObserver<Output>,
     handler: VRxOperatorMapHandler<Input, Output>,
   ) {
     this._observer = observer;
     this._handler = handler;
   }
-  onValue(value: Input): void {
+  public onValue(value: Input): void {
     this._observer.onValue(this._handler(value));
   }
 }

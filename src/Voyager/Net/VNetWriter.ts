@@ -3,11 +3,12 @@ import { VNetBuffer } from "./VNetBuffer.ts";
 import { VNetConnection } from "./VNetConnection.ts";
 import { VNetPool } from "./VNetPool.ts";
 
-export type VNetWriterDelegate = (buffer: VNetBuffer) => Promise<void> | void;
+export type VNetWriterSerializer = (buffer: VNetBuffer) => Promise<void> | void;
 
 interface VNetWriterTask {
-  serialize: VNetWriterDelegate;
-  resolve: (success: boolean) => void;
+  serialize: VNetWriterSerializer;
+  resolve: () => void;
+  reject: (error: Error) => void;
 }
 
 export class VNetWriter {
@@ -15,24 +16,25 @@ export class VNetWriter {
   private _processing = false;
   private _connection: VNetConnection;
   private _pool: VNetPool;
-  constructor(
+  public constructor(
     connection: VNetConnection,
     pool: VNetPool,
   ) {
     this._connection = connection;
     this._pool = pool;
   }
-  async write(serialize: VNetWriterDelegate): Promise<boolean> {
-    const promise = new Promise<boolean>((resolve) => {
+  public async write(serialize: VNetWriterSerializer): Promise<void> {
+    const promise = new Promise<void>((resolve, reject) => {
       this._tasks.enqueue({
         serialize: serialize,
         resolve: resolve,
+        reject: reject,
       });
     });
-    await this.writeNow();
+    await this.writeAll();
     return await promise;
   }
-  private async writeNow(): Promise<void> {
+  private async writeAll(): Promise<void> {
     if (!this._processing) {
       this._processing = true;
       const lengthBuffer = this._pool.obtain(4);
@@ -42,6 +44,7 @@ export class VNetWriter {
           const payloadBuffer = this._pool.obtain(1024);
           let success = false;
           try {
+            payloadBuffer.rewind();
             await task.serialize(payloadBuffer);
             const size = payloadBuffer.index();
             lengthBuffer.rewind();
@@ -50,22 +53,26 @@ export class VNetWriter {
             const sentPayload = await this.writeBuffer(payloadBuffer, size);
             success = sentLength && sentPayload;
           } catch (error) {
-            console.log("Error sending", error);
+            task.reject(error);
           }
           this._pool.recycle(payloadBuffer);
-          task.resolve(success);
+          if (success) {
+            task.resolve();
+          }
         }
       }
       this._pool.recycle(lengthBuffer);
       this._processing = false;
     }
   }
-  private async writeBuffer(buffer: VNetBuffer, writeSize: number): Promise<boolean> {
+  private async writeBuffer(
+    buffer: VNetBuffer,
+    writeSize: number,
+  ): Promise<boolean> {
     let writeCounter = 0;
     while (writeCounter < writeSize) {
       const writeArray = buffer.subarray(writeCounter, writeSize);
       const writeCurrent = await this._connection.write(writeArray);
-      console.log("writeCurrent", writeCurrent)
       if (writeCurrent <= 0) {
         return false;
       }

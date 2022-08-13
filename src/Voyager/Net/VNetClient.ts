@@ -1,24 +1,23 @@
+import { VNetAddress } from "./VNetAddress.ts";
 import { VNetConnection } from "./VNetConnection.ts";
 
 export interface VNetClientParams {
-  ssl: boolean;
-  host: string;
-  port: number;
+  address: VNetAddress;
   caCerts?: string[];
   certFile?: string;
 }
 
 export class VNetClient {
   private _params: VNetClientParams;
-  constructor(params: VNetClientParams) {
+  public constructor(params: VNetClientParams) {
     this._params = params;
   }
-  async connect(): Promise<VNetConnection> {
-    if (this._params.ssl) {
+  public async connect(): Promise<VNetConnection> {
+    if (this._params.address.ssl()) {
       return new VNetConnection(
         await Deno.connectTls({
-          hostname: this._params.host,
-          port: this._params.port,
+          hostname: this._params.address.host(),
+          port: this._params.address.port(),
           caCerts: this._params.caCerts,
           certFile: this._params.certFile,
         }),
@@ -26,8 +25,8 @@ export class VNetClient {
     } else {
       return new VNetConnection(
         await Deno.connect({
-          hostname: this._params.host,
-          port: this._params.port,
+          hostname: this._params.address.host(),
+          port: this._params.address.port(),
         }),
       );
     }

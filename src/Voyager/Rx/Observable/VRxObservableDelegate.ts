@@ -10,10 +10,10 @@ export type VRxObservableDelegateHandler<V> = (
 
 export class VRxObservableDelegate<V> implements VRxObservable<V> {
   private _handler: VRxObservableDelegateHandler<V>;
-  constructor(handler: VRxObservableDelegateHandler<V>) {
+  public constructor(handler: VRxObservableDelegateHandler<V>) {
     this._handler = handler;
   }
-  subscribe(observer: VRxObserver<V>): VRxSubscription {
+  public subscribe(observer: VRxObserver<V>): VRxSubscription {
     const subject = new VRxSubject<V>();
     const subscription = subject.subscribe(observer);
     const teardown = this._handler(subject);

@@ -4,10 +4,10 @@ export type VRxSubscriptionDelegateHandler = () => void;
 
 export class VRxSubscriptionDelegate implements VRxSubscription {
   private _handler?: VRxSubscriptionDelegateHandler;
-  constructor(handler: VRxSubscriptionDelegateHandler) {
+  public constructor(handler: VRxSubscriptionDelegateHandler) {
     this._handler = handler;
   }
-  unsubscribe(): void {
+  public unsubscribe(): void {
     if (this._handler) {
       this._handler();
       this._handler = undefined;

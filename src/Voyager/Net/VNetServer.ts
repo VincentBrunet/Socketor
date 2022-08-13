@@ -1,31 +1,32 @@
+import { VNetAddress } from "./VNetAddress.ts";
 import { VNetConnection } from "./VNetConnection.ts";
 
 export interface VNetServerParams {
-  ssl: boolean;
-  host: string;
-  port: number;
+  address: VNetAddress;
   cert: string;
   key: string;
 }
 
 export class VNetServer {
   private _params: VNetServerParams;
-  constructor(params: VNetServerParams) {
+  public constructor(params: VNetServerParams) {
     this._params = params;
   }
-  async listen(connected: (client: VNetConnection) => void): Promise<void> {
+  public async listen(
+    connected: (client: VNetConnection) => void,
+  ): Promise<void> {
     let listener: Deno.Listener;
-    if (this._params.ssl) {
+    if (this._params.address.ssl()) {
       listener = Deno.listenTls({
-        hostname: this._params.host,
-        port: this._params.port,
+        hostname: this._params.address.host(),
+        port: this._params.address.port(),
         cert: this._params.cert,
         key: this._params.key,
       });
     } else {
       listener = Deno.listen({
-        hostname: this._params.host,
-        port: this._params.port,
+        hostname: this._params.address.host(),
+        port: this._params.address.port(),
       });
     }
     while (true) {

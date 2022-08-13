@@ -5,7 +5,7 @@ import { VRxSubscription } from "./Subscription/VRxSubscription.ts";
 
 export class VRxSubject<V> implements VRxObservable<V>, VRxObserver<V> {
   private _observers = new VCoreList<VRxObserver<V>>();
-  subscribe(observer: VRxObserver<V>): VRxSubscription {
+  public subscribe(observer: VRxObserver<V>): VRxSubscription {
     this._observers.add(observer);
     return {
       unsubscribe: () => {
@@ -13,7 +13,7 @@ export class VRxSubject<V> implements VRxObservable<V>, VRxObserver<V> {
       },
     };
   }
-  onValue(value: V): void {
+  public onValue(value: V): void {
     for (const observer of this._observers) {
       observer.onValue(value);
     }
