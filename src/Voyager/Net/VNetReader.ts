@@ -23,7 +23,6 @@ export class VNetReader {
       }
       lengthBuffer.rewind();
       const payloadSize = lengthBuffer.readInt32();
-      console.log("readPayload", payloadSize);
       if (payloadSize <= 0 || payloadSize >= 10_000_000) {
         break;
       }
