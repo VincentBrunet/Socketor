@@ -6,7 +6,7 @@ import { VNetBuffer } from "./src/Voyager/Net/VNetBuffer.ts";
 import { VNetAddress } from "./src/Voyager/Net/VNetAddress.ts";
 
 async function main(): Promise<void> {
-  const address = new VNetAddress("127.0.0.1", 10000, false);
+  const address = new VNetAddress("127.0.0.1", 10000, true);
   const client = new VNetClient({
     address: address,
   });
@@ -15,9 +15,9 @@ async function main(): Promise<void> {
   const reader = new VNetReader(connection, pool);
   const writer = new VNetWriter(connection, pool);
 
-  await writer.write((buffer: VNetBuffer): void => {
+  await writer.writeMessage((buffer: VNetBuffer): void => {
     const parts = [];
-    for (let i = 0; i < 1000000; i++) {
+    for (let i = 0; i < 10; i++) {
       parts.push(
         "this is line:" + i +
           " -> and this is some garbage content that will take some space",
@@ -26,8 +26,8 @@ async function main(): Promise<void> {
     buffer.writeString("This is another:\n" + parts.join("\n"));
   });
 
-  await reader.read((buffer: VNetBuffer): void => {
-    console.log("READ", buffer.readString().length);
+  await reader.readMessages((buffer: VNetBuffer): void => {
+    console.log("READ", buffer.readString());
   });
 }
 

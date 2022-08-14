@@ -1,5 +1,8 @@
 export class VCoreList<V> implements Iterable<V> {
-  private _storage: V[] = [];
+  private _storage: V[];
+  constructor() {
+    this._storage = [];
+  }
   public add(item: V): void {
     this._storage.push(item);
   }

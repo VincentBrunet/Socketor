@@ -1,7 +1,10 @@
 import { VCoreList } from "./VCoreList.ts";
 
 export class VCoreMapList<K, V> {
-  private _storage = new Map<K, VCoreList<V>>();
+  private _storage: Map<K, VCoreList<V>>;
+  constructor() {
+    this._storage = new Map<K, VCoreList<V>>();
+  }
   public add(key: K, value: V): void {
     let list = this.get(key);
     if (list === undefined) {

@@ -1,7 +1,10 @@
 export class VNetConnection {
   private _connection: Deno.Conn;
+  private _closed: boolean;
+
   public constructor(connection: Deno.Conn) {
     this._connection = connection;
+    this._closed = false;
   }
   public id(): number {
     return this._connection.rid;
@@ -17,6 +20,10 @@ export class VNetConnection {
     return size;
   }
   public close(): void {
+    this._closed = true;
     this._connection.close();
+  }
+  public closed(): boolean {
+    return this._closed;
   }
 }

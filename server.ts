@@ -16,7 +16,7 @@ async function main(): Promise<void> {
   const cert = await certFile.readText();
   const key = await keyFile.readText();
 
-  const address = new VNetAddress("127.0.0.1", 10000, false);
+  const address = new VNetAddress("127.0.0.1", 10000, true);
   const server = new VNetServer({
     address: address,
     cert: cert,
@@ -28,10 +28,10 @@ async function main(): Promise<void> {
     const reader = new VNetReader(connection, pool);
     const writer = new VNetWriter(connection, pool);
     try {
-      await reader.read(async (buffer: VNetBuffer) => {
+      await reader.readMessages(async (buffer: VNetBuffer) => {
         const messageString = buffer.readString();
         console.log("READ", id, messageString);
-        await writer.write((buffer: VNetBuffer) => {
+        await writer.writeMessage((buffer: VNetBuffer) => {
           if (messageString) {
             buffer.writeString(messageString);
           }

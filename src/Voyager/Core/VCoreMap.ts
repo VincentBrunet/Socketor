@@ -1,5 +1,8 @@
 export class VCoreMap<K, V> {
-  private _storage: Map<K, V> = new Map<K, V>();
+  private _storage: Map<K, V>;
+  constructor() {
+    this._storage = new Map<K, V>();
+  }
   public set(key: K, value: V): void {
     this._storage.set(key, value);
   }
