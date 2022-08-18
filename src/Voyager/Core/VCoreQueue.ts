@@ -6,7 +6,7 @@ export class VCoreQueue<V> {
   public dequeue(): V | undefined {
     return this._storage.shift();
   }
-  public count(): number {
+  public getCount(): number {
     return this._storage.length;
   }
 }

@@ -6,7 +6,7 @@ import { VNetPool } from "./VNetPool.ts";
 export type VNetWriterSerializer = (buffer: VNetBuffer) => Promise<void> | void;
 
 interface VNetWriterPending {
-  serialize: VNetWriterSerializer;
+  serializer: VNetWriterSerializer;
   resolve: () => void;
   reject: (error: Error) => void;
 }
@@ -27,10 +27,10 @@ export class VNetWriter {
     this._processing = false;
   }
 
-  public async writeMessage(serialize: VNetWriterSerializer): Promise<void> {
+  public async writeMessage(serializer: VNetWriterSerializer): Promise<void> {
     const promise = new Promise<void>((resolve, reject) => {
       this._pendings.enqueue({
-        serialize: serialize,
+        serializer: serializer,
         resolve: resolve,
         reject: reject,
       });
@@ -46,7 +46,7 @@ export class VNetWriter {
     this._processing = true;
     const lengthBuffer = this._pool.obtain(4);
     try {
-      while (this._pendings.count() > 0) {
+      while (this._pendings.getCount() > 0) {
         const pending = this._pendings.dequeue();
         if (pending) {
           await this.writePending(lengthBuffer, pending);
@@ -64,10 +64,10 @@ export class VNetWriter {
   ): Promise<void> {
     const payloadBuffer = this._pool.obtain(1024);
     try {
-      payloadBuffer.rewind();
-      await pending.serialize(payloadBuffer);
-      const payloadLength = payloadBuffer.index();
-      lengthBuffer.rewind();
+      payloadBuffer.setIndexWriter(0);
+      await pending.serializer(payloadBuffer);
+      const payloadLength = payloadBuffer.getIndexWriter();
+      lengthBuffer.setIndexWriter(0);
       lengthBuffer.writeInt32(payloadLength);
       await this.writeBuffer(lengthBuffer, 4);
       await this.writeBuffer(payloadBuffer, payloadLength);
@@ -81,16 +81,18 @@ export class VNetWriter {
 
   private async writeBuffer(
     buffer: VNetBuffer,
-    writeSize: number,
+    size: number,
   ): Promise<void> {
-    let writeCounter = 0;
-    while (writeCounter < writeSize) {
-      const writeArray = buffer.subarray(writeCounter, writeSize);
-      const writeCurrent = await this._connection.write(writeArray);
-      if (writeCurrent <= 0) {
-        throw new Error("Unable to write: " + writeCurrent);
+    buffer.setIndexReader(0);
+    let sum = 0;
+    while (sum < size) {
+      const array = buffer.getMemory(sum, size);
+      const counter = await this._connection.write(array);
+      if (counter <= 0) {
+        throw new Error("Unable to write: " + counter);
       }
-      writeCounter += writeCurrent;
+      sum += counter;
+      buffer.setIndexReader(sum);
     }
   }
 }

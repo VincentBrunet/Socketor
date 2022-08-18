@@ -7,13 +7,13 @@ export class VNetAddress {
     this._port = port;
     this._ssl = ssl;
   }
-  public host(): string {
+  public getHost(): string {
     return this._host;
   }
-  public port(): number {
+  public getPort(): number {
     return this._port;
   }
-  public ssl(): boolean {
+  public getSsl(): boolean {
     return this._ssl;
   }
 }

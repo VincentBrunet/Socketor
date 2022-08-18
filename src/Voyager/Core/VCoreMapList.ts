@@ -2,7 +2,7 @@ import { VCoreList } from "./VCoreList.ts";
 
 export class VCoreMapList<K, V> {
   private _storage: Map<K, VCoreList<V>>;
-  constructor() {
+  public constructor() {
     this._storage = new Map<K, VCoreList<V>>();
   }
   public add(key: K, value: V): void {
@@ -16,10 +16,10 @@ export class VCoreMapList<K, V> {
   public get(key: K): VCoreList<V> | undefined {
     return this._storage.get(key);
   }
-  public keys(): IterableIterator<K> {
+  public getKeys(): IterableIterator<K> {
     return this._storage.keys();
   }
-  public values(): IterableIterator<VCoreList<V>> {
+  public getValues(): IterableIterator<VCoreList<V>> {
     return this._storage.values();
   }
 }

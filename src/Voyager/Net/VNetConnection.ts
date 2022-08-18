@@ -6,7 +6,7 @@ export class VNetConnection {
     this._connection = connection;
     this._closed = false;
   }
-  public id(): number {
+  public getId(): number {
     return this._connection.rid;
   }
   public async write(data: Readonly<Uint8Array>): Promise<number> {
@@ -23,7 +23,7 @@ export class VNetConnection {
     this._closed = true;
     this._connection.close();
   }
-  public closed(): boolean {
+  public getClosed(): boolean {
     return this._closed;
   }
 }

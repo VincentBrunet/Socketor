@@ -1,6 +1,6 @@
 export class VCoreList<V> implements Iterable<V> {
   private _storage: V[];
-  constructor() {
+  public constructor() {
     this._storage = [];
   }
   public add(item: V): void {
@@ -23,7 +23,7 @@ export class VCoreList<V> implements Iterable<V> {
   public set(idx: number, value: V): void {
     this._storage[idx] = value;
   }
-  public count(): number {
+  public getCount(): number {
     return this._storage.length;
   }
   public [Symbol.iterator](): Iterator<V> {

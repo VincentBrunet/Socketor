@@ -19,12 +19,12 @@ export class VNetReader {
   }
 
   public async readMessages(
-    deserialize: VNetReaderDeserializer,
+    deserializer: VNetReaderDeserializer,
   ): Promise<void> {
     const lengthBuffer = this._pool.obtain(4);
     try {
-      while (!this._connection.closed()) {
-        await this.readMessage(lengthBuffer, deserialize);
+      while (!this._connection.getClosed()) {
+        await this.readMessage(lengthBuffer, deserializer);
       }
     } finally {
       this._pool.recycle(lengthBuffer);
@@ -33,26 +33,26 @@ export class VNetReader {
 
   private async readMessage(
     lengthBuffer: VNetBuffer,
-    deserialize: VNetReaderDeserializer,
+    deserializer: VNetReaderDeserializer,
   ): Promise<void> {
     await this.readBuffer(lengthBuffer, 4);
-    lengthBuffer.rewind();
+    lengthBuffer.setIndexReader(0);
     const payloadLength = lengthBuffer.readInt32();
     if (payloadLength <= 0) {
       throw Error("Invalid read payload length:" + payloadLength);
     }
-    await this.readPayload(payloadLength, deserialize);
+    await this.readPayload(payloadLength, deserializer);
   }
 
   private async readPayload(
     payloadLength: number,
-    deserialize: VNetReaderDeserializer,
+    deserializer: VNetReaderDeserializer,
   ): Promise<void> {
     const payloadBuffer = this._pool.obtain(payloadLength);
     try {
       await this.readBuffer(payloadBuffer, payloadLength);
-      payloadBuffer.rewind();
-      await deserialize(payloadBuffer);
+      payloadBuffer.setIndexReader(0);
+      await deserializer(payloadBuffer);
     } finally {
       this._pool.recycle(payloadBuffer);
     }
@@ -60,16 +60,18 @@ export class VNetReader {
 
   private async readBuffer(
     buffer: VNetBuffer,
-    readSize: number,
+    size: number,
   ): Promise<void> {
-    let readCounter = 0;
-    while (readCounter < readSize) {
-      const readArray = buffer.subarray(readCounter, readSize);
-      const readCurrent = await this._connection.read(readArray);
-      if (readCurrent <= 0) {
+    buffer.setIndexWriter(0);
+    let sum = 0;
+    while (sum < size) {
+      const memory = buffer.getMemory(sum, size);
+      const counter = await this._connection.read(memory);
+      if (counter <= 0) {
         throw Error("Failed to read");
       }
-      readCounter += readCurrent;
+      sum += counter;
+      buffer.setIndexWriter(sum);
     }
   }
 }

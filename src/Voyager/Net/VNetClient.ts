@@ -13,11 +13,11 @@ export class VNetClient {
     this._params = params;
   }
   public async connect(): Promise<VNetConnection> {
-    if (this._params.address.ssl()) {
+    if (this._params.address.getSsl()) {
       return new VNetConnection(
         await Deno.connectTls({
-          hostname: this._params.address.host(),
-          port: this._params.address.port(),
+          hostname: this._params.address.getHost(),
+          port: this._params.address.getPort(),
           caCerts: this._params.caCerts,
           certFile: this._params.certFile,
         }),
@@ -25,8 +25,8 @@ export class VNetClient {
     } else {
       return new VNetConnection(
         await Deno.connect({
-          hostname: this._params.address.host(),
-          port: this._params.address.port(),
+          hostname: this._params.address.getHost(),
+          port: this._params.address.getPort(),
         }),
       );
     }

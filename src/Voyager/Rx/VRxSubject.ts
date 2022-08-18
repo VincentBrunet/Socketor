@@ -5,7 +5,7 @@ import { VRxSubscription } from "./Subscription/VRxSubscription.ts";
 
 export class VRxSubject<V> implements VRxObservable<V>, VRxObserver<V> {
   private _observers: VCoreList<VRxObserver<V>>;
-  constructor() {
+  public constructor() {
     this._observers = new VCoreList<VRxObserver<V>>();
   }
   public subscribe(observer: VRxObserver<V>): VRxSubscription {

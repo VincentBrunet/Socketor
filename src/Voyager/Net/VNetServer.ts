@@ -16,17 +16,17 @@ export class VNetServer {
     connected: (client: VNetConnection) => void,
   ): Promise<void> {
     let listener: Deno.Listener;
-    if (this._params.address.ssl()) {
+    if (this._params.address.getSsl()) {
       listener = Deno.listenTls({
-        hostname: this._params.address.host(),
-        port: this._params.address.port(),
+        hostname: this._params.address.getHost(),
+        port: this._params.address.getPort(),
         cert: this._params.cert,
         key: this._params.key,
       });
     } else {
       listener = Deno.listen({
-        hostname: this._params.address.host(),
-        port: this._params.address.port(),
+        hostname: this._params.address.getHost(),
+        port: this._params.address.getPort(),
       });
     }
     while (true) {

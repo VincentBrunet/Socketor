@@ -4,7 +4,7 @@ export class VCoreListSorted<V> implements Iterable<V> {
   private _priority: VCoreListSortedPriority<V>;
   private _storage: V[];
 
-  constructor(priority: VCoreListSortedPriority<V>) {
+  public constructor(priority: VCoreListSortedPriority<V>) {
     this._priority = priority;
     this._storage = [];
   }
@@ -15,7 +15,7 @@ export class VCoreListSorted<V> implements Iterable<V> {
 
   public insert(value: V): void {
     const priority = this._priority(value);
-    const index = this.index(priority);
+    const index = this.computeIndex(priority);
     this._storage.splice(index, 0, value);
   }
 
@@ -32,7 +32,7 @@ export class VCoreListSorted<V> implements Iterable<V> {
     this._storage.splice(index, 1);
   }
 
-  public index(priority: number): number {
+  public computeIndex(priority: number): number {
     let indexStart = 0;
     let indexEnd = this._storage.length;
     while (indexStart < indexEnd) {
@@ -52,7 +52,7 @@ export class VCoreListSorted<V> implements Iterable<V> {
     return indexStart;
   }
 
-  public count(): number {
+  public getCount(): number {
     return this._storage.length;
   }
   public [Symbol.iterator](): Iterator<V> {

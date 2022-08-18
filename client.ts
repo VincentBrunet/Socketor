@@ -6,7 +6,7 @@ import { VNetBuffer } from "./src/Voyager/Net/VNetBuffer.ts";
 import { VNetAddress } from "./src/Voyager/Net/VNetAddress.ts";
 
 async function main(): Promise<void> {
-  const address = new VNetAddress("127.0.0.1", 10000, true);
+  const address = new VNetAddress("127.0.0.1", 10000, false);
   const client = new VNetClient({
     address: address,
   });

@@ -6,18 +6,25 @@ function computeCapacity(capacity: number): number {
 }
 
 export class VNetBuffer {
-  private _index: number;
   private _array: Uint8Array;
   private _data: DataView;
+  private _indexReader: number;
+  private _indexWriter: number;
 
   public constructor(size: number) {
     const capacity = computeCapacity(size);
-    this._index = 0;
     this._array = new Uint8Array(capacity);
     this._data = new DataView(this._array.buffer);
+    this._indexReader = 0;
+    this._indexWriter = 0;
   }
 
-  public ensure(size: number): void {
+  public getMemory(start: number, end: number): Uint8Array {
+    this.ensureCapacity(end);
+    return this._array.subarray(start, end);
+  }
+
+  public ensureCapacity(size: number): void {
     if (size <= this._array.length) {
       return;
     }
@@ -27,31 +34,32 @@ export class VNetBuffer {
     this._array.set(lastArray);
     this._data = new DataView(this._array.buffer);
   }
-
-  public subarray(start: number, end: number): Uint8Array {
-    this.ensure(end);
-    return this._array.subarray(start, end);
-  }
-
-  public capacity(): number {
+  public getCapacity(): number {
     return this._array.length;
   }
 
-  public rewind(): void {
-    this._index = 0;
+  public setIndexReader(index: number): void {
+    this._indexReader = index;
   }
-  public index(): number {
-    return this._index;
+  public setIndexWriter(index: number): void {
+    this._indexWriter = index;
+  }
+
+  public getIndexReader(): number {
+    return this._indexReader;
+  }
+  public getIndexWriter(): number {
+    return this._indexWriter;
   }
 
   public readInt32(): number {
-    const value = this._data.getInt32(this._index, true);
-    this._index += 4;
+    const value = this._data.getInt32(this._indexReader, true);
+    this._indexReader += 4;
     return value;
   }
   public readFloat32(): number {
-    const value = this._data.getFloat32(this._index, true);
-    this._index += 4;
+    const value = this._data.getFloat32(this._indexReader, true);
+    this._indexReader += 4;
     return value;
   }
   public readString(): string | undefined {
@@ -59,40 +67,37 @@ export class VNetBuffer {
     if (bytes <= -1) {
       return undefined;
     }
-    const start = this._index;
+    const start = this._indexReader;
     const end = start + bytes;
-    const subarray = this.subarray(start, end);
-    const string = textDecoder.decode(subarray);
-    this._index += bytes;
+    const memory = this.getMemory(start, end);
+    const string = textDecoder.decode(memory);
+    this._indexReader += bytes;
     return string;
   }
 
   public writeInt32(value: number): void {
-    this.grow(4);
-    this._data.setInt32(this._index, value, true);
-    this._index += 4;
+    this.ensureCapacity(this._indexWriter + 4);
+    this._data.setInt32(this._indexWriter, value, true);
+    this._indexWriter += 4;
   }
   public writeFloat32(value: number): void {
-    this.grow(4);
-    this._data.setFloat32(this._index, value, true);
-    this._index += 4;
+    this.ensureCapacity(this._indexWriter + 4);
+    this._data.setFloat32(this._indexWriter, value, true);
+    this._indexWriter += 4;
   }
   public writeString(value: string | undefined): void {
     if (value === undefined) {
-      return this.writeInt32(-1);
+      this.writeInt32(-1);
+      return;
     }
     const estimated = value.length * 4;
-    this.grow(4 + estimated);
-    const start = this._index + 4;
+    this.ensureCapacity(this._indexWriter + 4 + estimated);
+    const start = this._indexWriter + 4;
     const end = start + estimated;
-    const subarray = this.subarray(start, end);
-    const result = textEncoder.encodeInto(value, subarray);
+    const memory = this.getMemory(start, end);
+    const result = textEncoder.encodeInto(value, memory);
     const bytes = result.written;
-    this._data.setInt32(this._index, bytes, true);
-    this._index += 4 + bytes;
-  }
-
-  private grow(size: number): void {
-    this.ensure(this._index + size);
+    this._data.setInt32(this._indexWriter, bytes, true);
+    this._indexWriter += 4 + bytes;
   }
 }
