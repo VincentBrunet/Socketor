@@ -1,10 +1,6 @@
 const textEncoder = new TextEncoder();
 const textDecoder = new TextDecoder();
 
-function computeCapacity(capacity: number): number {
-  return 1 << 32 - Math.clz32(capacity - 1);
-}
-
 export class VNetBuffer {
   private _array: Uint8Array;
   private _data: DataView;
@@ -12,7 +8,7 @@ export class VNetBuffer {
   private _indexWriter: number;
 
   public constructor(size: number) {
-    const capacity = computeCapacity(size);
+    const capacity = this.computeCapacity(size);
     this._array = new Uint8Array(capacity);
     this._data = new DataView(this._array.buffer);
     this._indexReader = 0;
@@ -24,12 +20,15 @@ export class VNetBuffer {
     return this._array.subarray(start, end);
   }
 
+  public computeCapacity(capacity: number): number {
+    return 1 << 32 - Math.clz32(capacity - 1);
+  }
   public ensureCapacity(size: number): void {
     if (size <= this._array.length) {
       return;
     }
     const lastArray = this._array;
-    const capacity = computeCapacity(size);
+    const capacity = this.computeCapacity(size);
     this._array = new Uint8Array(capacity);
     this._array.set(lastArray);
     this._data = new DataView(this._array.buffer);
@@ -70,9 +69,8 @@ export class VNetBuffer {
     const start = this._indexReader;
     const end = start + bytes;
     const memory = this.getMemory(start, end);
-    const string = textDecoder.decode(memory);
-    this._indexReader += bytes;
-    return string;
+    this._indexReader = end;
+    return textDecoder.decode(memory);
   }
 
   public writeInt32(value: number): void {
@@ -91,13 +89,17 @@ export class VNetBuffer {
       return;
     }
     const estimated = value.length * 4;
-    this.ensureCapacity(this._indexWriter + 4 + estimated);
     const start = this._indexWriter + 4;
     const end = start + estimated;
     const memory = this.getMemory(start, end);
-    const result = textEncoder.encodeInto(value, memory);
-    const bytes = result.written;
-    this._data.setInt32(this._indexWriter, bytes, true);
-    this._indexWriter += 4 + bytes;
+    const bytes = textEncoder.encodeInto(value, memory).written;
+    this.writeInt32(bytes);
+    this._indexWriter += bytes;
+  }
+  public writeArray(value: Uint8Array): void {
+    const start = this._indexWriter;
+    const end = start + value.length;
+    const memory = this.getMemory(start, end);
+    memory.set(value);
   }
 }

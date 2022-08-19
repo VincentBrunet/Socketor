@@ -86,8 +86,8 @@ export class VNetWriter {
     buffer.setIndexReader(0);
     let sum = 0;
     while (sum < size) {
-      const array = buffer.getMemory(sum, size);
-      const counter = await this._connection.write(array);
+      const memory = buffer.getMemory(sum, size);
+      const counter = await this._connection.write(memory);
       if (counter <= 0) {
         throw new Error("Unable to write: " + counter);
       }

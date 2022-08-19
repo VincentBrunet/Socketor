@@ -4,6 +4,7 @@ import { VNetWriter } from "./src/Voyager/Net/VNetWriter.ts";
 import { VNetClient } from "./src/Voyager/Net/VNetClient.ts";
 import { VNetBuffer } from "./src/Voyager/Net/VNetBuffer.ts";
 import { VNetAddress } from "./src/Voyager/Net/VNetAddress.ts";
+import { LRoomPacket } from "./src/Live/Room/LRoomPacket.ts";
 
 async function main(): Promise<void> {
   const address = new VNetAddress("127.0.0.1", 10000, false);
@@ -16,18 +17,47 @@ async function main(): Promise<void> {
   const writer = new VNetWriter(connection, pool);
 
   await writer.writeMessage((buffer: VNetBuffer): void => {
-    const parts = [];
-    for (let i = 0; i < 10; i++) {
-      parts.push(
-        "this is line:" + i +
-          " -> and this is some garbage content that will take some space",
-      );
-    }
-    buffer.writeString("This is another:\n" + parts.join("\n"));
+    buffer.writeInt32(LRoomPacket.AuthRequest);
+    buffer.writeString("vincent"); // token
   });
 
-  await reader.readMessages((buffer: VNetBuffer): void => {
-    console.log("READ", buffer.readString());
+  setInterval(() => {
+    writer.writeMessage((output: VNetBuffer): void => {
+      output.writeInt32(LRoomPacket.StatusRequest);
+    });
+  }, 3000);
+
+  await reader.readMessages(async (input: VNetBuffer) => {
+    const packet = input.readInt32();
+    switch (packet) {
+      case LRoomPacket.AuthPayload: {
+        console.log("Connected!", "myId:", input.readInt32());
+        return;
+      }
+      case LRoomPacket.Ping: {
+        await writer.writeMessage((output: VNetBuffer): void => {
+          output.writeInt32(LRoomPacket.Pong);
+          output.writeInt32(input.readInt32());
+        });
+        return;
+      }
+      case LRoomPacket.StatusPayload: {
+        const counter = input.readInt32();
+        for (let i = 0; i < counter; i++) {
+          console.log(
+            "user",
+            "id",
+            input.readInt32(),
+            "lag",
+            input.readInt32(),
+            "username",
+            input.readString(),
+          );
+        }
+        return;
+      }
+    }
+    console.log("input", input);
   });
 }
 
