@@ -15,7 +15,8 @@ export class LRoomGuest {
   private _pool: VNetPool;
   private _reader: VNetReader;
   private _writer: VNetWriter;
-  private _lag?: number;
+  private _aliveTime?: number;
+  private _alivePing?: number;
   private _user?: LRoomUser;
 
   public constructor(connection: VNetConnection, pool: VNetPool) {
@@ -23,7 +24,8 @@ export class LRoomGuest {
     this._pool = pool;
     this._reader = new VNetReader(this._connection, this._pool);
     this._writer = new VNetWriter(this._connection, this._pool);
-    this._lag = undefined;
+    this._aliveTime = undefined;
+    this._alivePing = undefined;
     this._user = undefined;
   }
 
@@ -31,11 +33,18 @@ export class LRoomGuest {
     return this._connection.getId();
   }
 
-  public setLag(lag: number): void {
-    this._lag = lag;
+  public setAliveTime(time: number): void {
+    this._aliveTime = time;
   }
-  public getLag(): number | undefined {
-    return this._lag;
+  public setAlivePing(ping: number): void {
+    this._alivePing = ping;
+  }
+
+  public getAliveTime(): number | undefined {
+    return this._aliveTime;
+  }
+  public getAlivePing(): number | undefined {
+    return this._alivePing;
   }
 
   public setUser(user: LRoomUser): void {

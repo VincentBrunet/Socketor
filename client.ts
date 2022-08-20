@@ -16,48 +16,55 @@ async function main(): Promise<void> {
   const reader = new VNetReader(connection, pool);
   const writer = new VNetWriter(connection, pool);
 
-  await writer.writeMessage((buffer: VNetBuffer): void => {
-    buffer.writeInt32(LRoomPacket.AuthRequest);
-    buffer.writeString("vincent"); // token
+  await writer.writeMessage((outputBuffer: VNetBuffer): void => {
+    outputBuffer.writeInt32(LRoomPacket.AuthRequest);
+    outputBuffer.writeString("vincent"); // token
   });
 
   setInterval(() => {
-    writer.writeMessage((output: VNetBuffer): void => {
-      output.writeInt32(LRoomPacket.StatusRequest);
+    writer.writeMessage((outputBuffer: VNetBuffer): void => {
+      outputBuffer.writeInt32(LRoomPacket.StatusRequest);
     });
   }, 3000);
 
-  await reader.readMessages(async (input: VNetBuffer) => {
-    const packet = input.readInt32();
+  await reader.readMessages(async (inputBuffer: VNetBuffer) => {
+    const packet = inputBuffer.readInt32();
     switch (packet) {
       case LRoomPacket.AuthPayload: {
-        console.log("Connected!", "myId:", input.readInt32());
+        console.log("Connected!", "myId:", inputBuffer.readInt32());
         return;
       }
       case LRoomPacket.Ping: {
-        await writer.writeMessage((output: VNetBuffer): void => {
-          output.writeInt32(LRoomPacket.Pong);
-          output.writeInt32(input.readInt32());
+        await writer.writeMessage((outputBuffer: VNetBuffer): void => {
+          outputBuffer.writeInt32(LRoomPacket.Pong);
+          outputBuffer.writeInt32(inputBuffer.readInt32());
         });
         return;
       }
       case LRoomPacket.StatusPayload: {
-        const counter = input.readInt32();
+        const counter = inputBuffer.readInt32();
+        console.log("--", counter, "users");
         for (let i = 0; i < counter; i++) {
           console.log(
             "user",
             "id",
-            input.readInt32(),
-            "lag",
-            input.readInt32(),
+            inputBuffer.readInt32(),
+            "alive time",
+            inputBuffer.readInt32(),
+            "alive ping",
+            inputBuffer.readInt32(),
             "username",
-            input.readString(),
+            inputBuffer.readString(),
           );
         }
         return;
       }
+      case LRoomPacket.Invalid: {
+        console.log("unknown packet", packet, inputBuffer.readString());
+        return;
+      }
     }
-    console.log("input", input);
+    console.log("inputBuffer", inputBuffer);
   });
 }
 

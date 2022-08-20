@@ -21,27 +21,25 @@ export class VNetReader {
   public async readMessages(
     deserializer: VNetReaderDeserializer,
   ): Promise<void> {
-    const lengthBuffer = this._pool.obtain(4);
-    try {
-      while (!this._connection.getClosed()) {
-        await this.readMessage(lengthBuffer, deserializer);
-      }
-    } finally {
-      this._pool.recycle(lengthBuffer);
+    while (!this._connection.getClosed()) {
+      await this.readMessage(deserializer);
     }
   }
 
   private async readMessage(
-    lengthBuffer: VNetBuffer,
     deserializer: VNetReaderDeserializer,
   ): Promise<void> {
-    await this.readBuffer(lengthBuffer, 4);
-    lengthBuffer.setIndexReader(0);
-    const payloadLength = lengthBuffer.readInt32();
-    if (payloadLength <= 0) {
-      throw Error("Invalid read payload length:" + payloadLength);
+    const lengthBuffer = this._pool.obtain(4);
+    try {
+      await this.readBuffer(lengthBuffer, 4);
+      const payloadLength = lengthBuffer.readInt32();
+      if (payloadLength <= 0) {
+        throw Error("Invalid read payload length:" + payloadLength);
+      }
+      await this.readPayload(payloadLength, deserializer);
+    } finally {
+      this._pool.recycle(lengthBuffer);
     }
-    await this.readPayload(payloadLength, deserializer);
   }
 
   private async readPayload(
@@ -51,7 +49,6 @@ export class VNetReader {
     const payloadBuffer = this._pool.obtain(payloadLength);
     try {
       await this.readBuffer(payloadBuffer, payloadLength);
-      payloadBuffer.setIndexReader(0);
       await deserializer(payloadBuffer);
     } finally {
       this._pool.recycle(payloadBuffer);

@@ -21,6 +21,8 @@ export class VNetPool {
   }
 
   public recycle(buffer: VNetBuffer): void {
+    buffer.setIndexReader(0);
+    buffer.setIndexWriter(0);
     this.buffers.insert(buffer);
   }
 }

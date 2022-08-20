@@ -44,30 +44,26 @@ export class VNetWriter {
       return;
     }
     this._processing = true;
-    const lengthBuffer = this._pool.obtain(4);
     try {
       while (this._pendings.getCount() > 0) {
         const pending = this._pendings.dequeue();
         if (pending) {
-          await this.writePending(lengthBuffer, pending);
+          await this.writePending(pending);
         }
       }
     } finally {
-      this._pool.recycle(lengthBuffer);
       this._processing = false;
     }
   }
 
   private async writePending(
-    lengthBuffer: VNetBuffer,
     pending: VNetWriterPending,
   ): Promise<void> {
+    const lengthBuffer = this._pool.obtain(4);
     const payloadBuffer = this._pool.obtain(1024);
     try {
-      payloadBuffer.setIndexWriter(0);
       await pending.serializer(payloadBuffer);
       const payloadLength = payloadBuffer.getIndexWriter();
-      lengthBuffer.setIndexWriter(0);
       lengthBuffer.writeInt32(payloadLength);
       await this.writeBuffer(lengthBuffer, 4);
       await this.writeBuffer(payloadBuffer, payloadLength);
@@ -75,6 +71,7 @@ export class VNetWriter {
     } catch (error) {
       pending.reject(error);
     } finally {
+      this._pool.recycle(lengthBuffer);
       this._pool.recycle(payloadBuffer);
     }
   }

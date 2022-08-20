@@ -38,9 +38,11 @@ export class VNetBuffer {
   }
 
   public setIndexReader(index: number): void {
+    this.ensureCapacity(index);
     this._indexReader = index;
   }
   public setIndexWriter(index: number): void {
+    this.ensureCapacity(index);
     this._indexWriter = index;
   }
 
@@ -52,54 +54,75 @@ export class VNetBuffer {
   }
 
   public readInt32(): number {
-    const value = this._data.getInt32(this._indexReader, true);
-    this._indexReader += 4;
-    return value;
+    const start = this.getIndexReader();
+    const end = start + 4;
+    this.setIndexReader(end);
+    return this._data.getInt32(start, true);
   }
   public readFloat32(): number {
-    const value = this._data.getFloat32(this._indexReader, true);
-    this._indexReader += 4;
-    return value;
+    const start = this.getIndexReader();
+    const end = start + 4;
+    this.setIndexReader(end);
+    return this._data.getFloat32(start, true);
   }
   public readString(): string | undefined {
     const bytes = this.readInt32();
     if (bytes <= -1) {
       return undefined;
     }
-    const start = this._indexReader;
+    const start = this.getIndexReader();
     const end = start + bytes;
-    const memory = this.getMemory(start, end);
-    this._indexReader = end;
-    return textDecoder.decode(memory);
+    this.setIndexReader(end);
+    return textDecoder.decode(this.getMemory(start, end));
+  }
+  public readMemory(): Uint8Array | undefined {
+    const bytes = this.readInt32();
+    if (bytes <= -1) {
+      return undefined;
+    }
+    const start = this.getIndexReader();
+    const end = start + bytes;
+    this.setIndexReader(end);
+    return this.getMemory(start, end);
   }
 
   public writeInt32(value: number): void {
-    this.ensureCapacity(this._indexWriter + 4);
-    this._data.setInt32(this._indexWriter, value, true);
-    this._indexWriter += 4;
+    const start = this.getIndexWriter();
+    const end = start + 4;
+    this.setIndexWriter(end);
+    this._data.setInt32(start, value, true);
   }
   public writeFloat32(value: number): void {
-    this.ensureCapacity(this._indexWriter + 4);
-    this._data.setFloat32(this._indexWriter, value, true);
-    this._indexWriter += 4;
+    const start = this.getIndexWriter();
+    const end = start + 4;
+    this.setIndexWriter(end);
+    this._data.setFloat32(start, value, true);
   }
   public writeString(value: string | undefined): void {
     if (value === undefined) {
       this.writeInt32(-1);
       return;
     }
-    const estimated = value.length * 4;
-    const start = this._indexWriter + 4;
-    const end = start + estimated;
-    const memory = this.getMemory(start, end);
-    const bytes = textEncoder.encodeInto(value, memory).written;
-    this.writeInt32(bytes);
-    this._indexWriter += bytes;
+    const prefixStart = this.getIndexWriter();
+    const dataStart = prefixStart + 4;
+    const estimatedBytes = value.length * 4;
+    const estimatedEnd = dataStart + estimatedBytes;
+    const memory = this.getMemory(dataStart, estimatedEnd);
+    const dataBytes = textEncoder.encodeInto(value, memory).written;
+    const dataEnd = dataStart + dataBytes;
+    this.writeInt32(dataBytes);
+    this.setIndexWriter(dataEnd);
   }
-  public writeArray(value: Uint8Array): void {
-    const start = this._indexWriter;
-    const end = start + value.length;
-    const memory = this.getMemory(start, end);
-    memory.set(value);
+  public writeMemory(value: Uint8Array | undefined): void {
+    if (value === undefined) {
+      this.writeInt32(-1);
+      return;
+    }
+    const bytes = value.length;
+    this.writeInt32(bytes);
+    const start = this.getIndexWriter();
+    const end = start + bytes;
+    this.setIndexWriter(end);
+    this.getMemory(start, end).set(value);
   }
 }
