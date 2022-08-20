@@ -163,7 +163,7 @@ export class LRoomMain {
     const timestamp = inputBuffer.readInt32();
     const roundtrip = this.getUptime() - timestamp;
     sender.setAliveTime(timestamp);
-    sender.setAlivePing(roundtrip / 2);
+    sender.setAlivePing(roundtrip);
   }
 
   public async processPacketInvalid(
