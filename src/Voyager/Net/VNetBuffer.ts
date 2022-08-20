@@ -7,12 +7,12 @@ export class VNetBuffer {
   private _indexReader: number;
   private _indexWriter: number;
 
-  public constructor(size: number) {
-    const capacity = this.computeCapacity(size);
-    this._array = new Uint8Array(capacity);
+  public constructor(capacity: number) {
+    this._array = new Uint8Array(0);
     this._data = new DataView(this._array.buffer);
     this._indexReader = 0;
     this._indexWriter = 0;
+    this.ensureCapacity(capacity);
   }
 
   public getMemory(start: number, end: number): Uint8Array {
@@ -23,13 +23,12 @@ export class VNetBuffer {
   public computeCapacity(capacity: number): number {
     return 1 << 32 - Math.clz32(capacity - 1);
   }
-  public ensureCapacity(size: number): void {
-    if (size <= this._array.length) {
+  public ensureCapacity(capacity: number): void {
+    if (capacity <= this._array.length) {
       return;
     }
     const lastArray = this._array;
-    const capacity = this.computeCapacity(size);
-    this._array = new Uint8Array(capacity);
+    this._array = new Uint8Array(this.computeCapacity(capacity));
     this._array.set(lastArray);
     this._data = new DataView(this._array.buffer);
   }

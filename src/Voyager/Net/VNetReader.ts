@@ -59,7 +59,7 @@ export class VNetReader {
     buffer: VNetBuffer,
     size: number,
   ): Promise<void> {
-    buffer.setIndexWriter(0);
+    buffer.setIndexWriter(size);
     let sum = 0;
     while (sum < size) {
       const memory = buffer.getMemory(sum, size);
@@ -68,7 +68,6 @@ export class VNetReader {
         throw Error("Failed to read");
       }
       sum += counter;
-      buffer.setIndexWriter(sum);
     }
   }
 }

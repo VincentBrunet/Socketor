@@ -7,6 +7,7 @@ import { VNetServer } from "../../Voyager/Net/VNetServer.ts";
 import { LRoomGuest } from "./LRoomGuest.ts";
 import { LRoomUser } from "./LRoomUser.ts";
 import { LRoomPacket } from "./LRoomPacket.ts";
+import { LRoomLogger } from "./LRoomLogger.ts";
 
 const usersByToken: VCoreMap<string, LRoomUser> = new VCoreMap<
   string,
@@ -23,6 +24,7 @@ export class LRoomMain {
   private _cert: string;
   private _key: string;
   private _guests: VCoreMap<number, LRoomGuest>;
+  private _logger: LRoomLogger;
 
   public constructor(address: VNetAddress, cert: string, key: string) {
     this._address = address;
@@ -30,6 +32,7 @@ export class LRoomMain {
     this._cert = cert;
     this._key = key;
     this._guests = new VCoreMap<number, LRoomGuest>();
+    this._logger = new LRoomLogger();
   }
 
   public async run(): Promise<void> {
@@ -41,23 +44,28 @@ export class LRoomMain {
     await server.listen(async (connection: VNetConnection) => {
       const guest = new LRoomGuest(connection, this._pool);
       guest.setAliveTime(this.getUptime());
-      console.log("Guest connected", guest.getId());
+      this._logger.logConnected(guest);
       const periodic = setInterval(() => {
         try {
           guest.writeMessage((outputBuffer: VNetBuffer): void => {
             outputBuffer.writeInt32(LRoomPacket.Ping);
             outputBuffer.writeInt32(this.getUptime());
           });
-        } catch {
-          console.log("Could not ping the guest", guest.getId());
+        } catch (error) {
+          this._logger.logPingFail(guest, error);
         }
       }, 1000);
       try {
         await guest.readMessages(async (inputBuffer: VNetBuffer) => {
           const packet = inputBuffer.readInt32();
-          switch (packet) {
-            case LRoomPacket.AuthRequest:
+          if (!guest.getUser()) {
+            if (LRoomPacket.AuthRequest) {
               return await this.processPacketAuth(guest, inputBuffer);
+            } else {
+              return await this.processPacketInvalid(guest, "unauthorized");
+            }
+          }
+          switch (packet) {
             case LRoomPacket.BroadcastRequest:
               return await this.processPacketBroadcast(guest, inputBuffer);
             case LRoomPacket.WhisperRequest:
@@ -69,8 +77,8 @@ export class LRoomMain {
           }
           return await this.processPacketInvalid(guest, "unknown packet");
         });
-      } catch {
-        console.log("Guest disconnected", guest.getId());
+      } catch (error) {
+        this._logger.logDisconnected(guest, error);
       } finally {
         this._guests.remove(guest.getId());
         clearInterval(periodic);
@@ -92,6 +100,7 @@ export class LRoomMain {
     }
     sender.setUser(user);
     this._guests.set(sender.getId(), sender);
+    this._logger.logAuthenticated(sender, user);
     await sender.writeMessage((outputBuffer: VNetBuffer) => {
       outputBuffer.writeInt32(LRoomPacket.AuthPayload);
       outputBuffer.writeInt32(sender.getId());
@@ -161,7 +170,7 @@ export class LRoomMain {
     sender: LRoomGuest,
     message: string,
   ): Promise<void> {
-    console.log("Invalid packet", sender.getId(), message);
+    this._logger.logPacketInvalid(sender, message);
     await sender.writeMessage((outputBuffer: VNetBuffer): void => {
       outputBuffer.writeInt32(LRoomPacket.Invalid);
       outputBuffer.writeString(message);

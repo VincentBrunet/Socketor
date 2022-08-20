@@ -64,6 +64,7 @@ async function main(): Promise<void> {
         return;
       }
     }
+    console.log("packet", packet);
     console.log("inputBuffer", inputBuffer);
   });
 }

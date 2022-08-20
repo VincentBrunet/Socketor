@@ -80,7 +80,7 @@ export class VNetWriter {
     buffer: VNetBuffer,
     size: number,
   ): Promise<void> {
-    buffer.setIndexReader(0);
+    buffer.setIndexReader(size);
     let sum = 0;
     while (sum < size) {
       const memory = buffer.getMemory(sum, size);
@@ -89,7 +89,6 @@ export class VNetWriter {
         throw new Error("Unable to write: " + counter);
       }
       sum += counter;
-      buffer.setIndexReader(sum);
     }
   }
 }
