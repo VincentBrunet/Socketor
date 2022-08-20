@@ -64,4 +64,8 @@ export class LRoomGuest {
   ): Promise<void> {
     return await this._writer.writeMessage(serializer);
   }
+
+  public close(): void {
+    return this._connection.close();
+  }
 }

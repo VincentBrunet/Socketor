@@ -10,19 +10,18 @@ export class VNetPool {
     });
   }
 
-  public obtain(capacity: number): VNetBuffer {
-    const index = this.buffers.computeIndex(capacity);
-    const buffer = this.buffers.get(index);
+  public obtain(): VNetBuffer {
+    const last = this.buffers.getCount() - 1;
+    const buffer = this.buffers.get(last);
     if (buffer) {
-      this.buffers.removeAt(index);
+      this.buffers.removeAt(last);
       return buffer;
     }
-    return new VNetBuffer(capacity);
+    return new VNetBuffer(10000);
   }
 
   public recycle(buffer: VNetBuffer): void {
-    buffer.setIndexReader(0);
-    buffer.setIndexWriter(0);
+    buffer.setPosition(0);
     this.buffers.insert(buffer);
   }
 }

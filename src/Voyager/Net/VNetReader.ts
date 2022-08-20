@@ -29,29 +29,18 @@ export class VNetReader {
   private async readMessage(
     deserializer: VNetReaderDeserializer,
   ): Promise<void> {
-    const lengthBuffer = this._pool.obtain(4);
+    const buffer = this._pool.obtain();
     try {
-      await this.readBuffer(lengthBuffer, 4);
-      const payloadLength = lengthBuffer.readInt32();
-      if (payloadLength <= 0) {
-        throw Error("Invalid read payload length:" + payloadLength);
+      await this.readBuffer(buffer, 4);
+      const bytes = buffer.readInt32();
+      if (bytes <= 0) {
+        throw Error("Invalid read payload length:" + bytes);
       }
-      await this.readPayload(payloadLength, deserializer);
+      await this.readBuffer(buffer, bytes);
+      buffer.setPosition(0);
+      await deserializer(buffer);
     } finally {
-      this._pool.recycle(lengthBuffer);
-    }
-  }
-
-  private async readPayload(
-    payloadLength: number,
-    deserializer: VNetReaderDeserializer,
-  ): Promise<void> {
-    const payloadBuffer = this._pool.obtain(payloadLength);
-    try {
-      await this.readBuffer(payloadBuffer, payloadLength);
-      await deserializer(payloadBuffer);
-    } finally {
-      this._pool.recycle(payloadBuffer);
+      this._pool.recycle(buffer);
     }
   }
 
@@ -59,7 +48,6 @@ export class VNetReader {
     buffer: VNetBuffer,
     size: number,
   ): Promise<void> {
-    buffer.setIndexWriter(size);
     let sum = 0;
     while (sum < size) {
       const memory = buffer.getMemory(sum, size);

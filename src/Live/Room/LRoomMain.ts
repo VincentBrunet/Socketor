@@ -82,6 +82,7 @@ export class LRoomMain {
       } finally {
         this._guests.remove(guest.getId());
         clearInterval(periodic);
+        guest.close();
       }
     });
   }
@@ -187,7 +188,7 @@ export class LRoomMain {
     if (!inputMemory) {
       return await this.processPacketInvalid(sender, "no payload");
     }
-    const fixedBuffer = this._pool.obtain(inputMemory.length);
+    const fixedBuffer = this._pool.obtain();
     fixedBuffer.writeMemory(inputMemory);
     const fixedMemory = fixedBuffer.readMemory();
     try {

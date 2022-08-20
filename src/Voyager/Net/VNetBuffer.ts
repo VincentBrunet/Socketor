@@ -4,14 +4,12 @@ const textDecoder = new TextDecoder();
 export class VNetBuffer {
   private _array: Uint8Array;
   private _data: DataView;
-  private _indexReader: number;
-  private _indexWriter: number;
+  private _position: number;
 
   public constructor(capacity: number) {
     this._array = new Uint8Array(0);
     this._data = new DataView(this._array.buffer);
-    this._indexReader = 0;
-    this._indexWriter = 0;
+    this._position = 0;
     this.ensureCapacity(capacity);
   }
 
@@ -36,32 +34,24 @@ export class VNetBuffer {
     return this._array.length;
   }
 
-  public setIndexReader(index: number): void {
-    this.ensureCapacity(index);
-    this._indexReader = index;
+  public setPosition(position: number): void {
+    this.ensureCapacity(position);
+    this._position = position;
   }
-  public setIndexWriter(index: number): void {
-    this.ensureCapacity(index);
-    this._indexWriter = index;
-  }
-
-  public getIndexReader(): number {
-    return this._indexReader;
-  }
-  public getIndexWriter(): number {
-    return this._indexWriter;
+  public getPosition(): number {
+    return this._position;
   }
 
   public readInt32(): number {
-    const start = this.getIndexReader();
+    const start = this.getPosition();
     const end = start + 4;
-    this.setIndexReader(end);
+    this.setPosition(end);
     return this._data.getInt32(start, true);
   }
   public readFloat32(): number {
-    const start = this.getIndexReader();
+    const start = this.getPosition();
     const end = start + 4;
-    this.setIndexReader(end);
+    this.setPosition(end);
     return this._data.getFloat32(start, true);
   }
   public readString(): string | undefined {
@@ -69,9 +59,9 @@ export class VNetBuffer {
     if (bytes <= -1) {
       return undefined;
     }
-    const start = this.getIndexReader();
+    const start = this.getPosition();
     const end = start + bytes;
-    this.setIndexReader(end);
+    this.setPosition(end);
     return textDecoder.decode(this.getMemory(start, end));
   }
   public readMemory(): Uint8Array | undefined {
@@ -79,22 +69,22 @@ export class VNetBuffer {
     if (bytes <= -1) {
       return undefined;
     }
-    const start = this.getIndexReader();
+    const start = this.getPosition();
     const end = start + bytes;
-    this.setIndexReader(end);
+    this.setPosition(end);
     return this.getMemory(start, end);
   }
 
   public writeInt32(value: number): void {
-    const start = this.getIndexWriter();
+    const start = this.getPosition();
     const end = start + 4;
-    this.setIndexWriter(end);
+    this.setPosition(end);
     this._data.setInt32(start, value, true);
   }
   public writeFloat32(value: number): void {
-    const start = this.getIndexWriter();
+    const start = this.getPosition();
     const end = start + 4;
-    this.setIndexWriter(end);
+    this.setPosition(end);
     this._data.setFloat32(start, value, true);
   }
   public writeString(value: string | undefined): void {
@@ -102,7 +92,7 @@ export class VNetBuffer {
       this.writeInt32(-1);
       return;
     }
-    const prefixStart = this.getIndexWriter();
+    const prefixStart = this.getPosition();
     const dataStart = prefixStart + 4;
     const estimatedBytes = value.length * 4;
     const estimatedEnd = dataStart + estimatedBytes;
@@ -110,7 +100,7 @@ export class VNetBuffer {
     const dataBytes = textEncoder.encodeInto(value, memory).written;
     const dataEnd = dataStart + dataBytes;
     this.writeInt32(dataBytes);
-    this.setIndexWriter(dataEnd);
+    this.setPosition(dataEnd);
   }
   public writeMemory(value: Uint8Array | undefined): void {
     if (value === undefined) {
@@ -119,9 +109,9 @@ export class VNetBuffer {
     }
     const bytes = value.length;
     this.writeInt32(bytes);
-    const start = this.getIndexWriter();
+    const start = this.getPosition();
     const end = start + bytes;
-    this.setIndexWriter(end);
+    this.setPosition(end);
     this.getMemory(start, end).set(value);
   }
 }

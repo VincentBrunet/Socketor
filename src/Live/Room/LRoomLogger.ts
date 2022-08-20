@@ -5,8 +5,8 @@ export class LRoomLogger {
   logConnected(guest: LRoomGuest): void {
     console.log("Guest", guest.getId(), "connected");
   }
-  logDisconnected(guest: LRoomGuest, _error: Error): void {
-    console.log("Guest", guest.getId(), "exit");
+  logDisconnected(guest: LRoomGuest, error: Error): void {
+    console.log("Guest", guest.getId(), "exit", error);
   }
   logAuthenticated(guest: LRoomGuest, user: LRoomUser): void {
     console.log("Guest", guest.getId(), "authenticated:", user.getUsername());

@@ -59,20 +59,20 @@ export class VNetWriter {
   private async writePending(
     pending: VNetWriterPending,
   ): Promise<void> {
-    const lengthBuffer = this._pool.obtain(4);
-    const payloadBuffer = this._pool.obtain(1024);
+    const buffer = this._pool.obtain();
     try {
-      await pending.serializer(payloadBuffer);
-      const payloadLength = payloadBuffer.getIndexWriter();
-      lengthBuffer.writeInt32(payloadLength);
-      await this.writeBuffer(lengthBuffer, 4);
-      await this.writeBuffer(payloadBuffer, payloadLength);
+      buffer.writeInt32(0);
+      await pending.serializer(buffer);
+      const position = buffer.getPosition();
+      const bytes = position - 4;
+      buffer.setPosition(0);
+      buffer.writeInt32(bytes);
+      await this.writeBuffer(buffer, position);
       pending.resolve();
     } catch (error) {
       pending.reject(error);
     } finally {
-      this._pool.recycle(lengthBuffer);
-      this._pool.recycle(payloadBuffer);
+      this._pool.recycle(buffer);
     }
   }
 
@@ -80,7 +80,6 @@ export class VNetWriter {
     buffer: VNetBuffer,
     size: number,
   ): Promise<void> {
-    buffer.setIndexReader(size);
     let sum = 0;
     while (sum < size) {
       const memory = buffer.getMemory(sum, size);
