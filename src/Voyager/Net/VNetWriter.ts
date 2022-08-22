@@ -79,11 +79,11 @@ export class VNetWriter {
 
   private async writeBuffer(
     buffer: VNetBuffer,
-    size: number,
+    bytes: number,
   ): Promise<void> {
     let sum = 0;
-    while (sum < size) {
-      const memory = buffer.getMemory(sum, size);
+    while (sum < bytes) {
+      const memory = buffer.getMemory(sum, bytes);
       const counter = await this._connection.write(memory);
       if (counter <= 0) {
         throw new Error("Unable to write: " + counter);

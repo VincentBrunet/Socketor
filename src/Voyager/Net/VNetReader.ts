@@ -4,7 +4,7 @@ import { VNetPool } from "./VNetPool.ts";
 
 export type VNetReaderDeserializer = (
   buffer: VNetBuffer,
-  size: number,
+  bytes: number,
 ) => Promise<void> | void;
 
 export class VNetReader {
@@ -48,11 +48,11 @@ export class VNetReader {
 
   private async readBuffer(
     buffer: VNetBuffer,
-    size: number,
+    bytes: number,
   ): Promise<void> {
     let sum = 0;
-    while (sum < size) {
-      const memory = buffer.getMemory(sum, size);
+    while (sum < bytes) {
+      const memory = buffer.getMemory(sum, bytes);
       const counter = await this._connection.read(memory);
       if (counter <= 0) {
         throw Error("Failed to read");

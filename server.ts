@@ -12,7 +12,7 @@ async function main(): Promise<void> {
   const address = new VNetAddress("127.0.0.1", 10000, false);
 
   const roomMain = new LRoomMain(address, cert, key);
-  await roomMain.run();
+  await roomMain.listen();
 }
 
 main();

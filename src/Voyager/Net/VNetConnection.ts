@@ -20,8 +20,15 @@ export class VNetConnection {
     return size;
   }
   public close(): void {
+    if (this._closed) {
+      return;
+    }
     this._closed = true;
-    this._connection.close();
+    try {
+      this._connection.close();
+    } catch (error) {
+      console.log("Error while closing connection", error.message);
+    }
   }
   public getClosed(): boolean {
     return this._closed;

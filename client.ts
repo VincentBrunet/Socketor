@@ -17,36 +17,36 @@ async function main(): Promise<void> {
   const writer = new VNetWriter(connection, pool);
 
   await writer.writeMessage((outputBuffer: VNetBuffer): void => {
-    outputBuffer.writeInt32(LRoomPacket.AuthRequest);
+    outputBuffer.writeInt32(LRoomPacket.AuthUp);
     outputBuffer.writeString("vincent"); // token
   });
 
   await writer.writeMessage((outputBuffer: VNetBuffer): void => {
-    outputBuffer.writeInt32(LRoomPacket.BroadcastRequest);
+    outputBuffer.writeInt32(LRoomPacket.BroadcastUp);
     outputBuffer.writeString("PAYLOAD OF BROADCAST LOL");
   });
 
   setInterval(() => {
     writer.writeMessage((outputBuffer: VNetBuffer): void => {
-      outputBuffer.writeInt32(LRoomPacket.StatusRequest);
+      outputBuffer.writeInt32(LRoomPacket.StatusUp);
     });
   }, 3000);
 
   await reader.readMessages(async (inputBuffer: VNetBuffer) => {
     const packet = inputBuffer.readInt32();
     switch (packet) {
-      case LRoomPacket.AuthPayload: {
+      case LRoomPacket.AuthDown: {
         console.log("Connected!", "myId:", inputBuffer.readInt32());
         return;
       }
-      case LRoomPacket.Ping: {
+      case LRoomPacket.KeepaliveDown: {
         await writer.writeMessage((outputBuffer: VNetBuffer): void => {
-          outputBuffer.writeInt32(LRoomPacket.Pong);
+          outputBuffer.writeInt32(LRoomPacket.KeepaliveUp);
           outputBuffer.writeInt32(inputBuffer.readInt32());
         });
         return;
       }
-      case LRoomPacket.StatusPayload: {
+      case LRoomPacket.StatusDown: {
         const counter = inputBuffer.readInt32();
         console.log("--", counter, "users");
         for (let i = 0; i < counter; i++) {
@@ -64,7 +64,19 @@ async function main(): Promise<void> {
         }
         return;
       }
-      case LRoomPacket.Invalid: {
+      case LRoomPacket.BroadcastDown: {
+        const senderId = inputBuffer.readInt32();
+        const message = inputBuffer.readString();
+        console.log("broadcast received from", senderId, message);
+        return;
+      }
+      case LRoomPacket.WhisperDown: {
+        const senderId = inputBuffer.readInt32();
+        const message = inputBuffer.readString();
+        console.log("whisper received from", senderId, message);
+        return;
+      }
+      case LRoomPacket.InvalidDown: {
         console.log("unknown packet", packet, inputBuffer.readString());
         return;
       }

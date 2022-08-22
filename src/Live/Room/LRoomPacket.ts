@@ -1,14 +1,24 @@
 export enum LRoomPacket {
   Unknown = 0,
-  Invalid = 1,
-  AuthRequest = 2,
-  AuthPayload = 3,
-  BroadcastRequest = 4,
-  BroadcastPayload = 5,
-  WhisperRequest = 6,
-  WhisperPayload = 7,
-  StatusRequest = 8,
-  StatusPayload = 9,
-  Ping = 10,
-  Pong = 11,
+
+  InvalidUp = 1000,
+  InvalidDown = 1001,
+
+  AuthUp = 2010,
+  AuthDown = 2011,
+  StatusUp = 2020,
+  StatusDown = 2021,
+
+  ChannelJoinUp = 3030,
+  ChannelJoinDown = 3031,
+  ChannelExitUp = 3040,
+  ChannelExitDown = 3041,
+
+  BroadcastUp = 4050,
+  BroadcastDown = 4051,
+  WhisperUp = 4060,
+  WhisperDown = 4061,
+
+  KeepaliveUp = 5001,
+  KeepaliveDown = 5002,
 }

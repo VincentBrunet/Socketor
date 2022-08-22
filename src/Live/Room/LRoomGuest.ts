@@ -15,8 +15,8 @@ export class LRoomGuest {
   private _pool: VNetPool;
   private _reader: VNetReader;
   private _writer: VNetWriter;
-  private _aliveTime?: number;
-  private _alivePing?: number;
+  private _aliveTimeMs?: number;
+  private _alivePingMs?: number;
   private _user?: LRoomUser;
 
   public constructor(connection: VNetConnection, pool: VNetPool) {
@@ -24,8 +24,8 @@ export class LRoomGuest {
     this._pool = pool;
     this._reader = new VNetReader(this._connection, this._pool);
     this._writer = new VNetWriter(this._connection, this._pool);
-    this._aliveTime = undefined;
-    this._alivePing = undefined;
+    this._aliveTimeMs = undefined;
+    this._alivePingMs = undefined;
     this._user = undefined;
   }
 
@@ -33,18 +33,18 @@ export class LRoomGuest {
     return this._connection.getId();
   }
 
-  public setAliveTime(time: number): void {
-    this._aliveTime = time;
+  public setAliveTimeMs(aliveTimeMs: number): void {
+    this._aliveTimeMs = aliveTimeMs;
   }
-  public setAlivePing(ping: number): void {
-    this._alivePing = ping;
+  public setAlivePingMs(alivePingMs: number): void {
+    this._alivePingMs = alivePingMs;
   }
 
-  public getAliveTime(): number | undefined {
-    return this._aliveTime;
+  public getAliveTimeMs(): number | undefined {
+    return this._aliveTimeMs;
   }
-  public getAlivePing(): number | undefined {
-    return this._alivePing;
+  public getAlivePingMs(): number | undefined {
+    return this._alivePingMs;
   }
 
   public setUser(user: LRoomUser): void {
