@@ -92,6 +92,15 @@ export class LRoomMain {
       case LRoomPacket.StatusUp: {
         return await this._reader.readPacketStatusUp(guest);
       }
+      case LRoomPacket.KickUp: {
+        return await this._reader.readPacketKickUp(guest, buffer);
+      }
+      case LRoomPacket.JoinUp: {
+        return await this._reader.readPacketJoinUp(guest, buffer);
+      }
+      case LRoomPacket.LeaveUp: {
+        return await this._reader.readPacketLeaveUp(guest, buffer);
+      }
       case LRoomPacket.BroadcastUp: {
         return await this._reader.readPacketBroadcastUp(guest, buffer, bytes);
       }

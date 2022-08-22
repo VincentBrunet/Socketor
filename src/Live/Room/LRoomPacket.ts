@@ -8,11 +8,13 @@ export enum LRoomPacket {
   AuthDown = 2011,
   StatusUp = 2020,
   StatusDown = 2021,
+  KickUp = 2030,
+  KickDown = 2031,
 
-  ChannelJoinUp = 3030,
-  ChannelJoinDown = 3031,
-  ChannelExitUp = 3040,
-  ChannelExitDown = 3041,
+  JoinUp = 3030,
+  JoinDown = 3031,
+  LeaveUp = 3040,
+  LeaveDown = 3041,
 
   BroadcastUp = 4050,
   BroadcastDown = 4051,
