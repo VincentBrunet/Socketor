@@ -35,7 +35,7 @@ export class VNetReader {
       await this.readBuffer(buffer, 4);
       buffer.setPosition(0);
       const bytes = buffer.readInt32();
-      if (bytes <= 0) {
+      if (bytes <= 0 || bytes >= 1024 * 1024 * 32) {
         throw Error("Invalid read payload length:" + bytes);
       }
       await this.readBuffer(buffer, bytes);

@@ -48,7 +48,7 @@ export class LRoomReader {
     buffer: VNetBuffer,
   ): Promise<void> {
     const kickedId = buffer.readInt32();
-    //return await this._writer.writePacketStatusDown(sender);
+    this._data.kickGuest(sender, kickedId);
     return await this._writer.writePacketKickDown(sender, kickedId);
   }
   public async readPacketJoinUp(
@@ -56,6 +56,7 @@ export class LRoomReader {
     buffer: VNetBuffer,
   ): Promise<void> {
     const channelId = buffer.readInt32();
+    this._data.joinGuest(sender, channelId);
     return await this._writer.writePacketJoinDown(sender, channelId);
   }
   public async readPacketLeaveUp(
@@ -63,6 +64,7 @@ export class LRoomReader {
     buffer: VNetBuffer,
   ): Promise<void> {
     const channelId = buffer.readInt32();
+    this._data.leaveGuest(sender, channelId);
     return await this._writer.writePacketLeaveDown(sender, channelId);
   }
 
@@ -71,7 +73,8 @@ export class LRoomReader {
     buffer: VNetBuffer,
     bytes: number,
   ): Promise<void> {
-    const guests = this._data.getGuests();
+    const channelId = buffer.readInt32();
+    const guests = this._data.getGuests(channelId);
     await this._writer.writePacketBroadcastDown(
       guests,
       sender,

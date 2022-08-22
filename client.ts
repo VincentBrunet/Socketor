@@ -23,6 +23,7 @@ async function main(): Promise<void> {
 
   await writer.writeMessage((outputBuffer: VNetBuffer): void => {
     outputBuffer.writeInt32(LRoomPacket.BroadcastUp);
+    outputBuffer.writeInt32(-42); // channel
     outputBuffer.writeString("PAYLOAD OF BROADCAST LOL");
   });
 

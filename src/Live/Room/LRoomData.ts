@@ -33,12 +33,25 @@ export class LRoomData {
     return aliveTimeMs > (this.getUptimeMs() - 5000);
   }
 
+  public kickGuest(_guest: LRoomGuest, _kickedId: number): void {
+    // TODO(@vbrunet)
+  }
+
+  public joinGuest(_guest: LRoomGuest, _channelId: number): void {
+    // TODO(@vbrunet)
+  }
+
+  public leaveGuest(_guest: LRoomGuest, _channelId: number): void {
+    // TODO(@vbrunet)
+  }
+
   public addGuest(guest: LRoomGuest, user: LRoomUser): void {
     guest.setUser(user);
     this._guests.set(guest.getId(), guest);
   }
 
-  public getGuests(): LRoomGuest[] {
+  public getGuests(_channelId?: number): LRoomGuest[] {
+    // TODO(@vbrunet)
     return [...this._guests.getValues()];
   }
 
