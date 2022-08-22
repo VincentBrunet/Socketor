@@ -21,6 +21,11 @@ async function main(): Promise<void> {
     outputBuffer.writeString("vincent"); // token
   });
 
+  await writer.writeMessage((outputBuffer: VNetBuffer): void => {
+    outputBuffer.writeInt32(LRoomPacket.BroadcastRequest);
+    outputBuffer.writeString("PAYLOAD OF BROADCAST LOL");
+  });
+
   setInterval(() => {
     writer.writeMessage((outputBuffer: VNetBuffer): void => {
       outputBuffer.writeInt32(LRoomPacket.StatusRequest);

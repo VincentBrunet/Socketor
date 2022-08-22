@@ -4,6 +4,7 @@ import { VNetPool } from "./VNetPool.ts";
 
 export type VNetReaderDeserializer = (
   buffer: VNetBuffer,
+  size: number,
 ) => Promise<void> | void;
 
 export class VNetReader {
@@ -32,13 +33,14 @@ export class VNetReader {
     const buffer = this._pool.obtain();
     try {
       await this.readBuffer(buffer, 4);
+      buffer.setPosition(0);
       const bytes = buffer.readInt32();
       if (bytes <= 0) {
         throw Error("Invalid read payload length:" + bytes);
       }
       await this.readBuffer(buffer, bytes);
       buffer.setPosition(0);
-      await deserializer(buffer);
+      await deserializer(buffer, bytes);
     } finally {
       this._pool.recycle(buffer);
     }

@@ -61,6 +61,7 @@ export class VNetWriter {
   ): Promise<void> {
     const buffer = this._pool.obtain();
     try {
+      buffer.setPosition(0);
       buffer.writeInt32(0);
       await pending.serializer(buffer);
       const position = buffer.getPosition();

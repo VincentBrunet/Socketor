@@ -56,27 +56,37 @@ export class LRoomMain {
         }
       }, 1000);
       try {
-        await guest.readMessages(async (inputBuffer: VNetBuffer) => {
-          const packet = inputBuffer.readInt32();
-          if (!guest.getUser()) {
-            if (LRoomPacket.AuthRequest) {
-              return await this.processPacketAuth(guest, inputBuffer);
-            } else {
-              return await this.processPacketInvalid(guest, "unauthorized");
+        await guest.readMessages(
+          async (inputBuffer: VNetBuffer, inputSize: number) => {
+            const packet = inputBuffer.readInt32();
+            if (!guest.getUser()) {
+              if (LRoomPacket.AuthRequest) {
+                return await this.processPacketAuth(guest, inputBuffer);
+              } else {
+                return await this.processPacketInvalid(guest, "unauthorized");
+              }
             }
-          }
-          switch (packet) {
-            case LRoomPacket.BroadcastRequest:
-              return await this.processPacketBroadcast(guest, inputBuffer);
-            case LRoomPacket.WhisperRequest:
-              return await this.processPacketWhisper(guest, inputBuffer);
-            case LRoomPacket.StatusRequest:
-              return await this.processPacketStatus(guest);
-            case LRoomPacket.Pong:
-              return this.processPacketPong(guest, inputBuffer);
-          }
-          return await this.processPacketInvalid(guest, "unknown packet");
-        });
+            switch (packet) {
+              case LRoomPacket.BroadcastRequest:
+                return await this.processPacketBroadcast(
+                  guest,
+                  inputBuffer,
+                  inputSize,
+                );
+              case LRoomPacket.WhisperRequest:
+                return await this.processPacketWhisper(
+                  guest,
+                  inputBuffer,
+                  inputSize,
+                );
+              case LRoomPacket.StatusRequest:
+                return await this.processPacketStatus(guest);
+              case LRoomPacket.Pong:
+                return this.processPacketPong(guest, inputBuffer);
+            }
+            return await this.processPacketInvalid(guest, "unknown packet");
+          },
+        );
       } catch (error) {
         this._logger.logDisconnected(guest, error);
       } finally {
@@ -111,6 +121,7 @@ export class LRoomMain {
   public async processPacketBroadcast(
     sender: LRoomGuest,
     inputBuffer: VNetBuffer,
+    inputSize: number,
   ): Promise<void> {
     if (!sender.getUser()) {
       return await this.processPacketInvalid(sender, "unauthorized");
@@ -119,6 +130,7 @@ export class LRoomMain {
       sender,
       [...this._guests.getValues()],
       inputBuffer,
+      inputSize,
       LRoomPacket.BroadcastPayload,
     );
   }
@@ -126,6 +138,7 @@ export class LRoomMain {
   public async processPacketWhisper(
     sender: LRoomGuest,
     inputBuffer: VNetBuffer,
+    inputSize: number,
   ): Promise<void> {
     if (!sender.getUser()) {
       return await this.processPacketInvalid(sender, "unauthorized");
@@ -138,6 +151,7 @@ export class LRoomMain {
       sender,
       [receiver],
       inputBuffer,
+      inputSize,
       LRoomPacket.WhisperPayload,
     );
   }
@@ -182,21 +196,24 @@ export class LRoomMain {
     sender: LRoomGuest,
     receivers: LRoomGuest[],
     inputBuffer: VNetBuffer,
+    inputSize: number,
     packet: LRoomPacket,
   ): Promise<void> {
-    const inputMemory = inputBuffer.readMemory();
-    if (!inputMemory) {
-      return await this.processPacketInvalid(sender, "no payload");
-    }
+    const inputPosition = inputBuffer.getPosition();
+    const inputMemory = inputBuffer.getMemory(inputPosition, inputSize);
     const fixedBuffer = this._pool.obtain();
-    fixedBuffer.writeMemory(inputMemory);
-    const fixedMemory = fixedBuffer.readMemory();
+    const fixedMemory = fixedBuffer.getMemory(0, inputMemory.length);
+    fixedMemory.set(inputMemory);
     try {
       await Promise.all(receivers.map((receiver: LRoomGuest) => {
         return receiver.writeMessage((outputBuffer: VNetBuffer): void => {
           outputBuffer.writeInt32(packet);
           outputBuffer.writeInt32(sender.getId());
-          outputBuffer.writeMemory(fixedMemory);
+          const start = outputBuffer.getPosition();
+          const end = start + fixedMemory.length;
+          outputBuffer.setPosition(end);
+          const outputMemory = outputBuffer.getMemory(start, end);
+          outputMemory.set(fixedMemory);
         });
       }));
     } finally {

@@ -17,7 +17,7 @@ export class VNetPool {
       this.buffers.removeAt(last);
       return buffer;
     }
-    return new VNetBuffer(10000);
+    return new VNetBuffer(256 * 256);
   }
 
   public recycle(buffer: VNetBuffer): void {

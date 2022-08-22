@@ -17,6 +17,14 @@
     "noStrictGenericChecks": true,
     "noUnusedLocals": true
   },
+  "fmt": {
+    "options": {
+      "indentWidth": 2,
+      "lineWidth": 80,
+      "useTabs": false,
+      "singleQuote": false
+    }
+  },
   "lint": {
     "rules": {
       "tags": ["recommended"],
