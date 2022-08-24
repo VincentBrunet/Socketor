@@ -1,5 +1,6 @@
 import { VNetBuffer } from "../../Voyager/Net/VNetBuffer.ts";
 import { VNetPool } from "../../Voyager/Net/VNetPool.ts";
+import { LRoomChannel } from "./LRoomChannel.ts";
 import { LRoomData } from "./LRoomData.ts";
 import { LRoomGuest } from "./LRoomGuest.ts";
 import { LRoomPacket } from "./LRoomPacket.ts";
@@ -34,10 +35,12 @@ export class LRoomWriter {
 
   public async writePacketStatusDown(
     receiver: LRoomGuest,
+    channel: LRoomChannel,
+    guests: LRoomGuest[],
   ): Promise<void> {
-    const guests = this._data.getGuests();
     await receiver.writeMessage((buffer: VNetBuffer): void => {
       buffer.writeInt32(LRoomPacket.StatusDown);
+      buffer.writeInt32(channel.getId());
       buffer.writeInt32(guests.length);
       for (const guest of guests) {
         buffer.writeInt32(guest.getId());
@@ -50,46 +53,50 @@ export class LRoomWriter {
 
   public async writePacketKickDown(
     receiver: LRoomGuest,
-    kickedId: number,
+    kicked: LRoomGuest,
   ): Promise<void> {
     await receiver.writeMessage((buffer: VNetBuffer) => {
       buffer.writeInt32(LRoomPacket.KickDown);
-      buffer.writeInt32(kickedId);
+      buffer.writeInt32(kicked.getId());
     });
   }
 
   public async writePacketJoinDown(
     receiver: LRoomGuest,
-    channelId: number,
+    channel: LRoomChannel,
   ): Promise<void> {
     await receiver.writeMessage((buffer: VNetBuffer) => {
       buffer.writeInt32(LRoomPacket.JoinDown);
-      buffer.writeInt32(channelId);
+      buffer.writeInt32(channel.getId());
     });
   }
 
   public async writePacketLeaveDown(
     receiver: LRoomGuest,
-    channelId: number,
+    channel: LRoomChannel,
   ): Promise<void> {
     await receiver.writeMessage((buffer: VNetBuffer) => {
       buffer.writeInt32(LRoomPacket.LeaveDown);
-      buffer.writeInt32(channelId);
+      buffer.writeInt32(channel.getId());
     });
   }
 
   public async writePacketBroadcastDown(
     receivers: LRoomGuest[],
     sender: LRoomGuest,
+    channel: LRoomChannel,
     buffer: VNetBuffer,
     bytes: number,
   ): Promise<void> {
     this.writePacketMemoryDown(
-      LRoomPacket.BroadcastDown,
       receivers,
-      sender,
       buffer,
       bytes,
+      (buffer: VNetBuffer) => {
+        buffer.writeInt32(LRoomPacket.BroadcastDown);
+        buffer.writeInt32(sender.getId());
+        buffer.writeInt32(channel.getId());
+      },
     );
     await Promise.resolve();
   }
@@ -101,11 +108,13 @@ export class LRoomWriter {
     bytes: number,
   ): Promise<void> {
     this.writePacketMemoryDown(
-      LRoomPacket.WhisperDown,
       [receiver],
-      sender,
       buffer,
       bytes,
+      (buffer: VNetBuffer) => {
+        buffer.writeInt32(LRoomPacket.WhisperDown);
+        buffer.writeInt32(sender.getId());
+      },
     );
     await Promise.resolve();
   }
@@ -120,26 +129,24 @@ export class LRoomWriter {
   }
 
   private async writePacketMemoryDown(
-    packet: LRoomPacket,
     receivers: LRoomGuest[],
-    sender: LRoomGuest,
-    buffer: VNetBuffer,
+    inputBuffer: VNetBuffer,
     bytes: number,
+    header: (buffer: VNetBuffer) => void,
   ): Promise<void> {
-    const inputPosition = buffer.getPosition();
-    const inputMemory = buffer.getMemory(inputPosition, bytes);
+    const inputPosition = inputBuffer.getPosition();
+    const inputMemory = inputBuffer.getMemory(inputPosition, bytes);
     const fixedBuffer = this._pool.obtain();
     const fixedMemory = fixedBuffer.getMemory(0, inputMemory.length);
     fixedMemory.set(inputMemory);
     try {
       await Promise.allSettled(receivers.map(async (receiver: LRoomGuest) => {
-        return await receiver.writeMessage((buffer: VNetBuffer): void => {
-          buffer.writeInt32(packet);
-          buffer.writeInt32(sender.getId());
-          const start = buffer.getPosition();
+        return await receiver.writeMessage((outputBuffer: VNetBuffer): void => {
+          header(outputBuffer);
+          const start = outputBuffer.getPosition();
           const end = start + fixedMemory.length;
-          buffer.setPosition(end);
-          const outputMemory = buffer.getMemory(start, end);
+          outputBuffer.setPosition(end);
+          const outputMemory = outputBuffer.getMemory(start, end);
           outputMemory.set(fixedMemory);
         });
       }));

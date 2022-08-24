@@ -20,6 +20,10 @@ async function main(): Promise<void> {
     outputBuffer.writeInt32(LRoomPacket.AuthUp);
     outputBuffer.writeString("vincent"); // token
   });
+  await writer.writeMessage((outputBuffer: VNetBuffer): void => {
+    outputBuffer.writeInt32(LRoomPacket.JoinUp);
+    outputBuffer.writeInt32(-42); // channek
+  });
 
   await writer.writeMessage((outputBuffer: VNetBuffer): void => {
     outputBuffer.writeInt32(LRoomPacket.BroadcastUp);
@@ -30,6 +34,7 @@ async function main(): Promise<void> {
   setInterval(() => {
     writer.writeMessage((outputBuffer: VNetBuffer): void => {
       outputBuffer.writeInt32(LRoomPacket.StatusUp);
+      outputBuffer.writeInt32(-42); // channel
     });
   }, 3000);
 
@@ -48,8 +53,9 @@ async function main(): Promise<void> {
         return;
       }
       case LRoomPacket.StatusDown: {
+        const channel = inputBuffer.readInt32();
         const counter = inputBuffer.readInt32();
-        console.log("--", counter, "users");
+        console.log("--", "channel", channel, "->", counter, "users");
         for (let i = 0; i < counter; i++) {
           console.log(
             "user",
@@ -65,10 +71,21 @@ async function main(): Promise<void> {
         }
         return;
       }
+      case LRoomPacket.JoinDown: {
+        const channelId = inputBuffer.readInt32();
+        console.log("joined channel", channelId);
+        return;
+      }
+      case LRoomPacket.LeaveDown: {
+        const channelId = inputBuffer.readInt32();
+        console.log("joined channel", channelId);
+        return;
+      }
       case LRoomPacket.BroadcastDown: {
         const senderId = inputBuffer.readInt32();
+        const channelId = inputBuffer.readInt32();
         const message = inputBuffer.readString();
-        console.log("broadcast received from", senderId, message);
+        console.log("broadcast received from", senderId, channelId, message);
         return;
       }
       case LRoomPacket.WhisperDown: {

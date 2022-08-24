@@ -1,28 +1,67 @@
 import { VCoreMap } from "../../Voyager/Core/VCoreMap.ts";
+import { LRoomChannel } from "./LRoomChannel.ts";
 import { LRoomGuest } from "./LRoomGuest.ts";
 import { LRoomUser } from "./LRoomUser.ts";
 
 export class LRoomData {
   private _startTime: number;
   private _guests: VCoreMap<number, LRoomGuest>;
+  private _channels: VCoreMap<number, LRoomChannel>;
 
   constructor() {
     this._startTime = Date.now();
     this._guests = new VCoreMap<number, LRoomGuest>();
+    this._channels = new VCoreMap<number, LRoomChannel>();
   }
 
-  public getUptimeMs(): number {
-    return Date.now() - this._startTime;
-  }
-
-  public initGuest(guest: LRoomGuest): void {
+  public onGuestConnect(guest: LRoomGuest): void {
     guest.setAliveTimeMs(this.getUptimeMs());
   }
 
-  public aliveGuest(guest: LRoomGuest, timestampMs: number): void {
+  public onGuestAlive(guest: LRoomGuest, timestampMs: number): void {
     const roundtripMs = this.getUptimeMs() - timestampMs;
     guest.setAliveTimeMs(timestampMs);
     guest.setAlivePingMs(roundtripMs);
+  }
+
+  public onGuestAuth(guest: LRoomGuest, user: LRoomUser): void {
+    guest.setUser(user);
+    this._guests.set(guest.getId(), guest);
+  }
+
+  public onGuestKick(guest: LRoomGuest, receiver: LRoomGuest): void {
+    guest.addKick(receiver);
+  }
+
+  public onGuestJoin(guest: LRoomGuest, channel: LRoomChannel): void {
+    guest.addChannel(channel);
+    channel.addGuest(guest);
+  }
+
+  public onGuestLeave(guest: LRoomGuest, channel: LRoomChannel): void {
+    guest.removeChannel(channel);
+    channel.removeGuest(guest);
+  }
+
+  public onGuestDisconnect(guest: LRoomGuest): void {
+    const channels = guest.listChannels();
+    for (const channel of channels) {
+      this.onGuestLeave(guest, channel);
+    }
+    this._guests.remove(guest.getId());
+  }
+
+  public getGuest(guestId: number): LRoomGuest | undefined {
+    return this._guests.get(guestId);
+  }
+
+  public getChannel(channelId: number): LRoomChannel {
+    let channel = this._channels.get(channelId);
+    if (!channel) {
+      channel = new LRoomChannel(channelId);
+      this._channels.set(channelId, channel);
+    }
+    return channel;
   }
 
   public checkGuest(guest: LRoomGuest): boolean {
@@ -30,36 +69,27 @@ export class LRoomData {
     if (!aliveTimeMs) {
       return false;
     }
-    return aliveTimeMs > (this.getUptimeMs() - 5000);
+    const aliveRecently = aliveTimeMs > (this.getUptimeMs() - 5000);
+    if (!aliveRecently) {
+      return false;
+    }
+    const kicks = guest.listKicks();
+    let validKicks = 0;
+    for (const kick of kicks) {
+      if (this.getGuest(kick.getId())) {
+        validKicks++;
+      } else {
+        guest.removeKick(kick);
+      }
+    }
+    const kicksTooLow = validKicks < this._guests.getCount() / 2;
+    if (!kicksTooLow) {
+      return false;
+    }
+    return true;
   }
 
-  public kickGuest(_guest: LRoomGuest, _kickedId: number): void {
-    // TODO(@vbrunet)
-  }
-
-  public joinGuest(_guest: LRoomGuest, _channelId: number): void {
-    // TODO(@vbrunet)
-  }
-
-  public leaveGuest(_guest: LRoomGuest, _channelId: number): void {
-    // TODO(@vbrunet)
-  }
-
-  public addGuest(guest: LRoomGuest, user: LRoomUser): void {
-    guest.setUser(user);
-    this._guests.set(guest.getId(), guest);
-  }
-
-  public getGuests(_channelId?: number): LRoomGuest[] {
-    // TODO(@vbrunet)
-    return [...this._guests.getValues()];
-  }
-
-  public getGuest(id: number): LRoomGuest | undefined {
-    return this._guests.get(id);
-  }
-
-  public removeGuest(guest: LRoomGuest): void {
-    this._guests.remove(guest.getId());
+  public getUptimeMs(): number {
+    return Date.now() - this._startTime;
   }
 }

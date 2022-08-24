@@ -43,7 +43,7 @@ export class LRoomMain {
     await server.listen(async (connection: VNetConnection) => {
       const guest = new LRoomGuest(connection, this._pool);
       this._logger.logConnected(guest);
-      this._data.initGuest(guest);
+      this._data.onGuestConnect(guest);
       const keepaliveInterval = setInterval(async () => {
         try {
           if (this._data.checkGuest(guest)) {
@@ -61,7 +61,7 @@ export class LRoomMain {
       } catch (error) {
         this._logger.logDisconnected(guest, error);
       } finally {
-        this._data.removeGuest(guest);
+        this._data.onGuestDisconnect(guest);
         clearInterval(keepaliveInterval);
         guest.close();
       }
@@ -90,7 +90,7 @@ export class LRoomMain {
         return await this._reader.readPacketAuthUp(guest, buffer);
       }
       case LRoomPacket.StatusUp: {
-        return await this._reader.readPacketStatusUp(guest);
+        return await this._reader.readPacketStatusUp(guest, buffer);
       }
       case LRoomPacket.KickUp: {
         return await this._reader.readPacketKickUp(guest, buffer);

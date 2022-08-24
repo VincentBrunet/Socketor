@@ -33,39 +33,54 @@ export class LRoomReader {
         "invalid auth token: " + token,
       );
     }
-    this._data.addGuest(sender, user);
+    this._data.onGuestAuth(sender, user);
     await this._writer.writePacketAuthDown(sender);
   }
 
   public async readPacketStatusUp(
     sender: LRoomGuest,
+    buffer: VNetBuffer,
   ): Promise<void> {
-    return await this._writer.writePacketStatusDown(sender);
+    const channelId = buffer.readInt32();
+    const channel = this._data.getChannel(channelId);
+    const guests = channel.listGuests();
+    return await this._writer.writePacketStatusDown(sender, channel, guests);
   }
 
   public async readPacketKickUp(
     sender: LRoomGuest,
     buffer: VNetBuffer,
   ): Promise<void> {
-    const kickedId = buffer.readInt32();
-    this._data.kickGuest(sender, kickedId);
-    return await this._writer.writePacketKickDown(sender, kickedId);
+    const receiverId = buffer.readInt32();
+    const receiver = this._data.getGuest(receiverId);
+    if (!receiver) {
+      return await this._writer.writePacketInvalidDown(
+        sender,
+        "unknown kick receiver: " + receiverId,
+      );
+    }
+    this._data.onGuestKick(sender, receiver);
+    return await this._writer.writePacketKickDown(sender, receiver);
   }
+
   public async readPacketJoinUp(
     sender: LRoomGuest,
     buffer: VNetBuffer,
   ): Promise<void> {
     const channelId = buffer.readInt32();
-    this._data.joinGuest(sender, channelId);
-    return await this._writer.writePacketJoinDown(sender, channelId);
+    const channel = this._data.getChannel(channelId);
+    this._data.onGuestJoin(sender, channel);
+    return await this._writer.writePacketJoinDown(sender, channel);
   }
+
   public async readPacketLeaveUp(
     sender: LRoomGuest,
     buffer: VNetBuffer,
   ): Promise<void> {
     const channelId = buffer.readInt32();
-    this._data.leaveGuest(sender, channelId);
-    return await this._writer.writePacketLeaveDown(sender, channelId);
+    const channel = this._data.getChannel(channelId);
+    this._data.onGuestLeave(sender, channel);
+    return await this._writer.writePacketLeaveDown(sender, channel);
   }
 
   public async readPacketBroadcastUp(
@@ -74,10 +89,12 @@ export class LRoomReader {
     bytes: number,
   ): Promise<void> {
     const channelId = buffer.readInt32();
-    const guests = this._data.getGuests(channelId);
+    const channel = this._data.getChannel(channelId);
+    const guests = channel.listGuests();
     await this._writer.writePacketBroadcastDown(
       guests,
       sender,
+      channel,
       buffer,
       bytes,
     );
@@ -109,6 +126,6 @@ export class LRoomReader {
     buffer: VNetBuffer,
   ): void {
     const timestampMs = buffer.readInt32();
-    this._data.aliveGuest(sender, timestampMs);
+    this._data.onGuestAlive(sender, timestampMs);
   }
 }

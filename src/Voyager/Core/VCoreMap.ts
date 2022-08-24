@@ -9,6 +9,9 @@ export class VCoreMap<K, V> {
   public get(key: K): V | undefined {
     return this._storage.get(key);
   }
+  public has(key: K): boolean {
+    return this._storage.has(key);
+  }
   public remove(key: K): boolean {
     return this._storage.delete(key);
   }
