@@ -1,11 +1,9 @@
-export type VCoreListSortedPriority<V> = (v: V) => number;
-
 export class VCoreListSorted<V> implements Iterable<V> {
-  private _priority: VCoreListSortedPriority<V>;
+  private _position: (v: V) => number;
   private _storage: V[];
 
-  public constructor(priority: VCoreListSortedPriority<V>) {
-    this._priority = priority;
+  public constructor(position: (v: V) => number) {
+    this._position = position;
     this._storage = [];
   }
 
@@ -14,39 +12,29 @@ export class VCoreListSorted<V> implements Iterable<V> {
   }
 
   public insert(value: V): void {
-    const priority = this._priority(value);
-    const index = this.computeIndex(priority);
+    const position = this._position(value);
+    const index = this.findIndex(position);
     this._storage.splice(index, 0, value);
-  }
-
-  public remove(value: V): boolean {
-    const index = this._storage.indexOf(value);
-    if (index >= 0) {
-      this._storage.splice(index, 1);
-      return true;
-    }
-    return false;
   }
 
   public removeAt(index: number): void {
     this._storage.splice(index, 1);
   }
 
-  public computeIndex(priority: number): number {
+  public findIndex(position: number): number {
     let indexStart = 0;
     let indexEnd = this._storage.length;
     while (indexStart < indexEnd) {
       const indexMid = Math.floor((indexStart + indexEnd) / 2);
       const valueMid = this._storage[indexMid];
-      if (valueMid) {
-        const priorityMid = this._priority(valueMid);
-        if (priorityMid > priority) {
-          indexStart = indexMid + 1;
-        } else {
-          indexEnd = indexMid;
-        }
-      } else {
+      if (valueMid === undefined) {
         break;
+      }
+      const positionMid = this._position(valueMid);
+      if (positionMid <= position) {
+        indexStart = indexMid + 1;
+      } else {
+        indexEnd = indexMid;
       }
     }
     return indexStart;

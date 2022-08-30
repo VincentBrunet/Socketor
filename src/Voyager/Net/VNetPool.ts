@@ -6,7 +6,7 @@ export class VNetPool {
 
   public constructor() {
     this.buffers = new VCoreListSorted<VNetBuffer>((buffer: VNetBuffer) => {
-      return -buffer.getCapacity();
+      return buffer.getCapacity();
     });
   }
 
