@@ -17,13 +17,21 @@ Deno.test({
     assertEquals(sortedList.get(2), 0);
     assertEquals(sortedList.get(3), 42);
 
-    assertEquals(sortedList.findIndex(-43), 0);
-    assertEquals(sortedList.findIndex(-42), 1);
-    assertEquals(sortedList.findIndex(-41), 1);
-    assertEquals(sortedList.findIndex(0), 3);
-    assertEquals(sortedList.findIndex(1), 3);
-    assertEquals(sortedList.findIndex(42), 4);
-    assertEquals(sortedList.findIndex(43), 4);
+    assertEquals(sortedList.findIndexBeforePosition(-43), 0);
+    assertEquals(sortedList.findIndexBeforePosition(-42), 0);
+    assertEquals(sortedList.findIndexBeforePosition(-41), 1);
+    assertEquals(sortedList.findIndexBeforePosition(0), 1);
+    assertEquals(sortedList.findIndexBeforePosition(1), 3);
+    assertEquals(sortedList.findIndexBeforePosition(42), 3);
+    assertEquals(sortedList.findIndexBeforePosition(43), 4);
+
+    assertEquals(sortedList.findIndexAfterPosition(-43), 0);
+    assertEquals(sortedList.findIndexAfterPosition(-42), 1);
+    assertEquals(sortedList.findIndexAfterPosition(-41), 1);
+    assertEquals(sortedList.findIndexAfterPosition(0), 3);
+    assertEquals(sortedList.findIndexAfterPosition(1), 3);
+    assertEquals(sortedList.findIndexAfterPosition(42), 4);
+    assertEquals(sortedList.findIndexAfterPosition(43), 4);
   },
 });
 
@@ -43,12 +51,20 @@ Deno.test({
     assertEquals(sortedList.get(2), "123");
     assertEquals(sortedList.get(3), "zzzzz");
 
-    assertEquals(sortedList.findIndex(0), 0);
-    assertEquals(sortedList.findIndex(1), 1);
-    assertEquals(sortedList.findIndex(2), 1);
-    assertEquals(sortedList.findIndex(3), 3);
-    assertEquals(sortedList.findIndex(4), 3);
-    assertEquals(sortedList.findIndex(5), 4);
-    assertEquals(sortedList.findIndex(6), 4);
+    assertEquals(sortedList.findIndexBeforePosition(0), 0);
+    assertEquals(sortedList.findIndexBeforePosition(1), 0);
+    assertEquals(sortedList.findIndexBeforePosition(2), 1);
+    assertEquals(sortedList.findIndexBeforePosition(3), 1);
+    assertEquals(sortedList.findIndexBeforePosition(4), 3);
+    assertEquals(sortedList.findIndexBeforePosition(5), 3);
+    assertEquals(sortedList.findIndexBeforePosition(6), 4);
+
+    assertEquals(sortedList.findIndexAfterPosition(0), 0);
+    assertEquals(sortedList.findIndexAfterPosition(1), 1);
+    assertEquals(sortedList.findIndexAfterPosition(2), 1);
+    assertEquals(sortedList.findIndexAfterPosition(3), 3);
+    assertEquals(sortedList.findIndexAfterPosition(4), 3);
+    assertEquals(sortedList.findIndexAfterPosition(5), 4);
+    assertEquals(sortedList.findIndexAfterPosition(6), 4);
   },
 });

@@ -13,15 +13,37 @@ export class VCoreListSorted<V> implements Iterable<V> {
 
   public insert(value: V): void {
     const position = this._position(value);
-    const index = this.findIndex(position);
-    this._storage.splice(index, 0, value);
+    const indexAfter = this.findIndexAfterPosition(position);
+    this._storage.splice(indexAfter, 0, value);
+  }
+
+  public remove(value: V): void {
+    const position = this._position(value);
+    const indexBefore = this.findIndexBeforePosition(position);
+    const indexAfter = this.findIndexAfterPosition(position);
+    for (let i = indexBefore; i < indexAfter; i++) {
+      if (this._storage[i] === value) {
+        this.removeAt(i);
+        return;
+      }
+    }
   }
 
   public removeAt(index: number): void {
     this._storage.splice(index, 1);
   }
 
-  public findIndex(position: number): number {
+  public findIndexBeforePosition(position: number): number {
+    return this.findIndexPosition(position, VCoreListSorted.comparerBefore);
+  }
+  public findIndexAfterPosition(position: number): number {
+    return this.findIndexPosition(position, VCoreListSorted.comparerAfter);
+  }
+
+  private findIndexPosition(
+    position: number,
+    comparer: (a: number, b: number) => boolean,
+  ): number {
     let indexStart = 0;
     let indexEnd = this._storage.length;
     while (indexStart < indexEnd) {
@@ -31,7 +53,7 @@ export class VCoreListSorted<V> implements Iterable<V> {
         break;
       }
       const positionMid = this._position(valueMid);
-      if (positionMid <= position) {
+      if (comparer(positionMid, position)) {
         indexStart = indexMid + 1;
       } else {
         indexEnd = indexMid;
@@ -45,5 +67,12 @@ export class VCoreListSorted<V> implements Iterable<V> {
   }
   public [Symbol.iterator](): Iterator<V> {
     return this._storage.values();
+  }
+
+  private static comparerBefore(a: number, b: number): boolean {
+    return a < b;
+  }
+  private static comparerAfter(a: number, b: number): boolean {
+    return a <= b;
   }
 }
