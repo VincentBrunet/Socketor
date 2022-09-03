@@ -17,20 +17,27 @@ export class VCoreListSorted<V> implements Iterable<V> {
     this._storage.splice(indexAfter, 0, value);
   }
 
+  public removeAt(index: number): void {
+    this._storage.splice(index, 1);
+  }
+
   public remove(value: V): void {
+    const index = this.indexOf(value);
+    if (index >= 0) {
+      this.removeAt(index);
+    }
+  }
+
+  public indexOf(value: V): number {
     const position = this._position(value);
     const indexBefore = this.findIndexBeforePosition(position);
     const indexAfter = this.findIndexAfterPosition(position);
     for (let i = indexBefore; i < indexAfter; i++) {
       if (this._storage[i] === value) {
-        this.removeAt(i);
-        return;
+        return i;
       }
     }
-  }
-
-  public removeAt(index: number): void {
-    this._storage.splice(index, 1);
+    return -1;
   }
 
   public findIndexBeforePosition(position: number): number {

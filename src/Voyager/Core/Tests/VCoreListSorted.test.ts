@@ -32,6 +32,13 @@ Deno.test({
     assertEquals(sortedList.findIndexAfterPosition(1), 3);
     assertEquals(sortedList.findIndexAfterPosition(42), 4);
     assertEquals(sortedList.findIndexAfterPosition(43), 4);
+
+    assertEquals(-1, sortedList.indexOf(-43));
+    assertEquals(0, sortedList.indexOf(-42));
+    assertEquals(-1, sortedList.indexOf(-41));
+    assertEquals(1, sortedList.indexOf(0));
+    assertEquals(-1, sortedList.indexOf(1));
+    assertEquals(3, sortedList.indexOf(42));
   },
 });
 
@@ -66,5 +73,15 @@ Deno.test({
     assertEquals(sortedList.findIndexAfterPosition(4), 3);
     assertEquals(sortedList.findIndexAfterPosition(5), 4);
     assertEquals(sortedList.findIndexAfterPosition(6), 4);
+
+    assertEquals(-1, sortedList.indexOf(""));
+    assertEquals(0, sortedList.indexOf("-"));
+    assertEquals(-1, sortedList.indexOf("j"));
+    assertEquals(1, sortedList.indexOf("abc"));
+    assertEquals(-1, sortedList.indexOf("aaa"));
+    assertEquals(2, sortedList.indexOf("123"));
+    assertEquals(-1, sortedList.indexOf("000"));
+    assertEquals(3, sortedList.indexOf("zzzzz"));
+    assertEquals(-1, sortedList.indexOf("?????"));
   },
 });
