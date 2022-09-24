@@ -1,37 +1,37 @@
 export class VCoreListSorted<V> implements Iterable<V> {
-  private _position: (v: V) => number;
+  private _priority: (v: V) => number;
   private _storage: V[];
 
-  public constructor(position: (v: V) => number) {
-    this._position = position;
+  public constructor(priority: (v: V) => number) {
+    this._priority = priority;
     this._storage = [];
   }
 
-  public get(index: number): V | undefined {
+  public getValueAtIndex(index: number): V | undefined {
     return this._storage[index];
   }
 
-  public insert(value: V): void {
-    const position = this._position(value);
-    const indexAfter = this.findIndexAfterPosition(position);
+  public insertValue(value: V): void {
+    const priority = this._priority(value);
+    const indexAfter = this.findIndexAfterPriority(priority);
     this._storage.splice(indexAfter, 0, value);
   }
 
-  public removeAt(index: number): void {
-    this._storage.splice(index, 1);
-  }
-
-  public remove(value: V): void {
-    const index = this.indexOf(value);
+  public removeValue(value: V): void {
+    const index = this.findIndexOfValue(value);
     if (index >= 0) {
-      this.removeAt(index);
+      this.removeValueAtIndex(index);
     }
   }
 
-  public indexOf(value: V): number {
-    const position = this._position(value);
-    const indexBefore = this.findIndexBeforePosition(position);
-    const indexAfter = this.findIndexAfterPosition(position);
+  public removeValueAtIndex(index: number): void {
+    this._storage.splice(index, 1);
+  }
+
+  public findIndexOfValue(value: V): number {
+    const priority = this._priority(value);
+    const indexBefore = this.findIndexBeforePriority(priority);
+    const indexAfter = this.findIndexAfterPriority(priority);
     for (let i = indexBefore; i < indexAfter; i++) {
       if (this._storage[i] === value) {
         return i;
@@ -40,15 +40,19 @@ export class VCoreListSorted<V> implements Iterable<V> {
     return -1;
   }
 
-  public findIndexBeforePosition(position: number): number {
-    return this.findIndexPosition(position, VCoreListSorted.comparerBefore);
-  }
-  public findIndexAfterPosition(position: number): number {
-    return this.findIndexPosition(position, VCoreListSorted.comparerAfter);
+  public containsValue(value: V): boolean {
+    return this.findIndexOfValue(value) >= 0;
   }
 
-  private findIndexPosition(
-    position: number,
+  public findIndexBeforePriority(priority: number): number {
+    return this.findIndexWithPriority(priority, VCoreListSorted.comparerBefore);
+  }
+  public findIndexAfterPriority(priority: number): number {
+    return this.findIndexWithPriority(priority, VCoreListSorted.comparerAfter);
+  }
+
+  private findIndexWithPriority(
+    priority: number,
     comparer: (a: number, b: number) => boolean,
   ): number {
     let indexStart = 0;
@@ -59,8 +63,8 @@ export class VCoreListSorted<V> implements Iterable<V> {
       if (valueMid === undefined) {
         break;
       }
-      const positionMid = this._position(valueMid);
-      if (comparer(positionMid, position)) {
+      const priorityMid = this._priority(valueMid);
+      if (comparer(priorityMid, priority)) {
         indexStart = indexMid + 1;
       } else {
         indexEnd = indexMid;
@@ -71,6 +75,9 @@ export class VCoreListSorted<V> implements Iterable<V> {
 
   public getCount(): number {
     return this._storage.length;
+  }
+  public getValues(): IterableIterator<V> {
+    return this._storage.values();
   }
   public [Symbol.iterator](): Iterator<V> {
     return this._storage.values();

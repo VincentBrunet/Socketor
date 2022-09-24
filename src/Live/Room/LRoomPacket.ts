@@ -6,8 +6,6 @@ export enum LRoomPacket {
 
   AuthUp = 2010,
   AuthDown = 2011,
-  StatusUp = 2020,
-  StatusDown = 2021,
   KickUp = 2030,
   KickDown = 2031,
 
@@ -15,6 +13,8 @@ export enum LRoomPacket {
   JoinDown = 3031,
   LeaveUp = 3040,
   LeaveDown = 3041,
+  ListUp = 3050,
+  ListDown = 3051,
 
   BroadcastUp = 4050,
   BroadcastDown = 4051,

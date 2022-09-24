@@ -26,6 +26,9 @@ export class VCoreList<V> implements Iterable<V> {
   public getCount(): number {
     return this._storage.length;
   }
+  public getValues(): IterableIterator<V> {
+    return this._storage.values();
+  }
   public [Symbol.iterator](): Iterator<V> {
     return this._storage.values();
   }

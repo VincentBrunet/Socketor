@@ -33,7 +33,7 @@ async function main(): Promise<void> {
 
   setInterval(() => {
     writer.writeMessage((outputBuffer: VNetBuffer): void => {
-      outputBuffer.writeInt32(LRoomPacket.StatusUp);
+      outputBuffer.writeInt32(LRoomPacket.ListUp);
       outputBuffer.writeInt32(-42); // channel
     });
   }, 3000);
@@ -52,20 +52,20 @@ async function main(): Promise<void> {
         });
         return;
       }
-      case LRoomPacket.StatusDown: {
+      case LRoomPacket.ListDown: {
         const channel = inputBuffer.readInt32();
         const counter = inputBuffer.readInt32();
-        console.log("--", "channel", channel, "->", counter, "users");
+        console.log("--", "channel", channel, "->", counter, "guests");
         for (let i = 0; i < counter; i++) {
           console.log(
-            "user",
+            "guest",
             "id",
             inputBuffer.readInt32(),
             "alive time",
             inputBuffer.readInt32(),
             "alive ping",
             inputBuffer.readInt32(),
-            "username",
+            "guestname",
             inputBuffer.readString(),
           );
         }

@@ -1,5 +1,5 @@
 import { LRoomGuest } from "./LRoomGuest.ts";
-import { LRoomUser } from "./LRoomUser.ts";
+import { LRoomIdentity } from "./LRoomIdentity.ts";
 
 export class LRoomLogger {
   logConnected(guest: LRoomGuest): void {
@@ -8,8 +8,14 @@ export class LRoomLogger {
   logDisconnected(guest: LRoomGuest, error: Error): void {
     console.log("Guest", guest.getId(), "exit", error.message);
   }
-  logAuthenticated(guest: LRoomGuest, user: LRoomUser): void {
-    console.log("Guest", guest.getId(), "authenticated:", user.getUsername());
+  logAuthenticated(guest: LRoomGuest, identity: LRoomIdentity): void {
+    console.log(
+      "Guest",
+      guest.getId(),
+      "authenticated:",
+      identity.getUsername(),
+      identity.getCapabilities(),
+    );
   }
   logPacketInvalid(guest: LRoomGuest, message: string): void {
     console.log("Guest", guest.getId(), "message:", message);

@@ -1,7 +1,7 @@
 import { VCoreMap } from "../../Voyager/Core/VCoreMap.ts";
 import { LRoomChannel } from "./LRoomChannel.ts";
 import { LRoomGuest } from "./LRoomGuest.ts";
-import { LRoomUser } from "./LRoomUser.ts";
+import { LRoomIdentity } from "./LRoomIdentity.ts";
 
 export class LRoomData {
   private _startTime: number;
@@ -24,8 +24,8 @@ export class LRoomData {
     guest.setAlivePingMs(roundtripMs);
   }
 
-  public onGuestAuth(guest: LRoomGuest, user: LRoomUser): void {
-    guest.setUser(user);
+  public onGuestAuth(guest: LRoomGuest, identity: LRoomIdentity): void {
+    guest.setIdentity(identity);
     this._guests.set(guest.getId(), guest);
   }
 
@@ -82,8 +82,8 @@ export class LRoomData {
         guest.removeKick(kick);
       }
     }
-    const kicksTooLow = validKicks < this._guests.getCount() / 2;
-    if (!kicksTooLow) {
+    const enoughKicks = validKicks > this._guests.getCount() / 2;
+    if (enoughKicks) {
       return false;
     }
     return true;

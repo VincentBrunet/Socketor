@@ -12,9 +12,9 @@ export class VNetPool {
 
   public obtain(): VNetBuffer {
     const last = this.buffers.getCount() - 1;
-    const buffer = this.buffers.get(last);
+    const buffer = this.buffers.getValueAtIndex(last);
     if (buffer) {
-      this.buffers.removeAt(last);
+      this.buffers.removeValueAtIndex(last);
       return buffer;
     }
     return new VNetBuffer(256 * 256);
@@ -22,6 +22,6 @@ export class VNetPool {
 
   public recycle(buffer: VNetBuffer): void {
     buffer.setPosition(0);
-    this.buffers.insert(buffer);
+    this.buffers.insertValue(buffer);
   }
 }

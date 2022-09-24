@@ -1,13 +1,13 @@
-import { VCoreMap } from "../../Voyager/Core/VCoreMap.ts";
+import { VCoreListSorted } from "../../Voyager/Core/VCoreListSorted.ts";
 import { LRoomGuest } from "./LRoomGuest.ts";
 
 export class LRoomChannel {
   private _id: number;
-  private _guests: VCoreMap<number, LRoomGuest>;
+  private _guests: VCoreListSorted<LRoomGuest>;
 
   constructor(id: number) {
     this._id = id;
-    this._guests = new VCoreMap<number, LRoomGuest>();
+    this._guests = new VCoreListSorted<LRoomGuest>(LRoomChannel.priorityGuest);
   }
 
   public getId(): number {
@@ -15,12 +15,18 @@ export class LRoomChannel {
   }
 
   public addGuest(guest: LRoomGuest): void {
-    this._guests.set(guest.getId(), guest);
+    if (!this._guests.containsValue(guest)) {
+      this._guests.insertValue(guest);
+    }
   }
   public removeGuest(guest: LRoomGuest): void {
-    this._guests.remove(guest.getId());
+    this._guests.removeValue(guest);
   }
   public listGuests(): LRoomGuest[] {
     return [...this._guests.getValues()];
+  }
+
+  private static priorityGuest(guest: LRoomGuest): number {
+    return guest.getId();
   }
 }

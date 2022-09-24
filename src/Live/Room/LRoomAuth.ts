@@ -1,18 +1,29 @@
 import { VCoreMap } from "../../Voyager/Core/VCoreMap.ts";
-import { LRoomUser } from "./LRoomUser.ts";
+import { LRoomIdentity } from "./LRoomIdentity.ts";
 
-const usersByToken: VCoreMap<string, LRoomUser> = new VCoreMap<
+const identityByToken: VCoreMap<string, LRoomIdentity> = new VCoreMap<
   string,
-  LRoomUser
+  LRoomIdentity
 >();
-usersByToken.set("vincent", new LRoomUser("vinsininounet"));
-usersByToken.set("maho", new LRoomUser("mahodesu"));
+identityByToken.set(
+  "vincent",
+  new LRoomIdentity(
+    "vinsininounet",
+    "is vinsininounet capabilities",
+  ),
+);
+identityByToken.set(
+  "maho",
+  new LRoomIdentity(
+    "mahodesu",
+    "mahodesu capabilities",
+  ),
+);
 
 export class LRoomAuth {
   constructor() {
   }
-
-  public getUser(token: string): LRoomUser | undefined {
-    return usersByToken.get(token);
+  public getIdentity(token: string): LRoomIdentity | undefined {
+    return identityByToken.get(token);
   }
 }

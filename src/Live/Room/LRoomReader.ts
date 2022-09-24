@@ -15,6 +15,23 @@ export class LRoomReader {
     this._writer = writer;
   }
 
+  public readPacketInvalidUp(
+    sender: LRoomGuest,
+    buffer: VNetBuffer,
+  ): void {
+    const code = buffer.readInt32();
+    const message = buffer.readString();
+    console.log(
+      "Guest",
+      sender.getId(),
+      sender.getIdentity(),
+      "is complaining about:",
+      code,
+      "->",
+      message,
+    );
+  }
+
   public async readPacketAuthUp(
     sender: LRoomGuest,
     buffer: VNetBuffer,
@@ -23,28 +40,20 @@ export class LRoomReader {
     if (!token) {
       return await this._writer.writePacketInvalidDown(
         sender,
+        403,
         "no auth token",
       );
     }
-    const user = this._auth.getUser(token);
-    if (!user) {
+    const identity = this._auth.getIdentity(token);
+    if (!identity) {
       return await this._writer.writePacketInvalidDown(
         sender,
+        403,
         "invalid auth token: " + token,
       );
     }
-    this._data.onGuestAuth(sender, user);
+    this._data.onGuestAuth(sender, identity);
     await this._writer.writePacketAuthDown(sender);
-  }
-
-  public async readPacketStatusUp(
-    sender: LRoomGuest,
-    buffer: VNetBuffer,
-  ): Promise<void> {
-    const channelId = buffer.readInt32();
-    const channel = this._data.getChannel(channelId);
-    const guests = channel.listGuests();
-    return await this._writer.writePacketStatusDown(sender, channel, guests);
   }
 
   public async readPacketKickUp(
@@ -56,6 +65,7 @@ export class LRoomReader {
     if (!receiver) {
       return await this._writer.writePacketInvalidDown(
         sender,
+        404,
         "unknown kick receiver: " + receiverId,
       );
     }
@@ -81,6 +91,16 @@ export class LRoomReader {
     const channel = this._data.getChannel(channelId);
     this._data.onGuestLeave(sender, channel);
     return await this._writer.writePacketLeaveDown(sender, channel);
+  }
+
+  public async readPacketListUp(
+    sender: LRoomGuest,
+    buffer: VNetBuffer,
+  ): Promise<void> {
+    const channelId = buffer.readInt32();
+    const channel = this._data.getChannel(channelId);
+    const guests = channel.listGuests();
+    return await this._writer.writePacketListDown(sender, channel, guests);
   }
 
   public async readPacketBroadcastUp(
@@ -110,6 +130,7 @@ export class LRoomReader {
     if (!receiver) {
       return await this._writer.writePacketInvalidDown(
         sender,
+        404,
         "unknown whisper receiver: " + receiverId,
       );
     }

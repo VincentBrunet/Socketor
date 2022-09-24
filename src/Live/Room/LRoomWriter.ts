@@ -16,10 +16,12 @@ export class LRoomWriter {
 
   public async writePacketInvalidDown(
     receiver: LRoomGuest,
+    code: number,
     message: string,
   ): Promise<void> {
     await receiver.writeMessage((buffer: VNetBuffer): void => {
       buffer.writeInt32(LRoomPacket.InvalidDown);
+      buffer.writeInt32(code);
       buffer.writeString(message);
     });
   }
@@ -30,24 +32,6 @@ export class LRoomWriter {
     await receiver.writeMessage((buffer: VNetBuffer) => {
       buffer.writeInt32(LRoomPacket.AuthDown);
       buffer.writeInt32(receiver.getId());
-    });
-  }
-
-  public async writePacketStatusDown(
-    receiver: LRoomGuest,
-    channel: LRoomChannel,
-    guests: LRoomGuest[],
-  ): Promise<void> {
-    await receiver.writeMessage((buffer: VNetBuffer): void => {
-      buffer.writeInt32(LRoomPacket.StatusDown);
-      buffer.writeInt32(channel.getId());
-      buffer.writeInt32(guests.length);
-      for (const guest of guests) {
-        buffer.writeInt32(guest.getId());
-        buffer.writeInt32(guest.getAliveTimeMs() ?? -1);
-        buffer.writeInt32(guest.getAlivePingMs() ?? -1);
-        buffer.writeString(guest.getUser()?.getUsername());
-      }
     });
   }
 
@@ -78,6 +62,25 @@ export class LRoomWriter {
     await receiver.writeMessage((buffer: VNetBuffer) => {
       buffer.writeInt32(LRoomPacket.LeaveDown);
       buffer.writeInt32(channel.getId());
+    });
+  }
+
+  public async writePacketListDown(
+    receiver: LRoomGuest,
+    channel: LRoomChannel,
+    guests: LRoomGuest[],
+  ): Promise<void> {
+    await receiver.writeMessage((buffer: VNetBuffer): void => {
+      buffer.writeInt32(LRoomPacket.ListDown);
+      buffer.writeInt32(channel.getId());
+      buffer.writeInt32(guests.length);
+      for (const guest of guests) {
+        buffer.writeInt32(guest.getId());
+        buffer.writeInt32(guest.getAliveTimeMs() ?? -1);
+        buffer.writeInt32(guest.getAlivePingMs() ?? -1);
+        buffer.writeString(guest.getIdentity()?.getUsername());
+        buffer.writeString(guest.getIdentity()?.getCapabilities());
+      }
     });
   }
 

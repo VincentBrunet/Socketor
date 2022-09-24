@@ -82,15 +82,15 @@ export class LRoomMain {
     bytes: number,
   ): Promise<void> {
     const packet = buffer.readInt32();
-    if (!guest.getUser() && packet !== LRoomPacket.AuthUp) {
+    if (!guest.getIdentity() && packet !== LRoomPacket.AuthUp) {
       throw Error("Unauthorized packet:" + packet);
     }
     switch (packet) {
+      case LRoomPacket.InvalidUp: {
+        return this._reader.readPacketInvalidUp(guest, buffer);
+      }
       case LRoomPacket.AuthUp: {
         return await this._reader.readPacketAuthUp(guest, buffer);
-      }
-      case LRoomPacket.StatusUp: {
-        return await this._reader.readPacketStatusUp(guest, buffer);
       }
       case LRoomPacket.KickUp: {
         return await this._reader.readPacketKickUp(guest, buffer);
@@ -100,6 +100,9 @@ export class LRoomMain {
       }
       case LRoomPacket.LeaveUp: {
         return await this._reader.readPacketLeaveUp(guest, buffer);
+      }
+      case LRoomPacket.ListUp: {
+        return await this._reader.readPacketListUp(guest, buffer);
       }
       case LRoomPacket.BroadcastUp: {
         return await this._reader.readPacketBroadcastUp(guest, buffer, bytes);
