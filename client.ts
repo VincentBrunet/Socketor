@@ -52,6 +52,16 @@ async function main(): Promise<void> {
         });
         return;
       }
+      case LRoomPacket.JoinDown: {
+        const channelId = inputBuffer.readInt32();
+        console.log("joined channel", channelId);
+        return;
+      }
+      case LRoomPacket.LeaveDown: {
+        const channelId = inputBuffer.readInt32();
+        console.log("joined channel", channelId);
+        return;
+      }
       case LRoomPacket.ListDown: {
         const channel = inputBuffer.readInt32();
         const counter = inputBuffer.readInt32();
@@ -65,20 +75,12 @@ async function main(): Promise<void> {
             inputBuffer.readInt32(),
             "alive ping",
             inputBuffer.readInt32(),
-            "guestname",
+            "username",
+            inputBuffer.readString(),
+            "capabilities",
             inputBuffer.readString(),
           );
         }
-        return;
-      }
-      case LRoomPacket.JoinDown: {
-        const channelId = inputBuffer.readInt32();
-        console.log("joined channel", channelId);
-        return;
-      }
-      case LRoomPacket.LeaveDown: {
-        const channelId = inputBuffer.readInt32();
-        console.log("joined channel", channelId);
         return;
       }
       case LRoomPacket.BroadcastDown: {

@@ -39,6 +39,21 @@ Deno.test({
     assertEquals(1, sortedList.findIndexOfValue(0));
     assertEquals(-1, sortedList.findIndexOfValue(1));
     assertEquals(3, sortedList.findIndexOfValue(42));
+
+    sortedList.removeValue(0);
+    assertEquals(sortedList.getValueAtIndex(0), -42);
+    assertEquals(sortedList.getValueAtIndex(1), 0);
+    assertEquals(sortedList.getValueAtIndex(2), 42);
+
+    sortedList.removeValue(-42);
+    assertEquals(sortedList.getValueAtIndex(0), 0);
+    assertEquals(sortedList.getValueAtIndex(1), 42);
+
+    sortedList.removeValue(42);
+    assertEquals(sortedList.getValueAtIndex(0), 0);
+
+    sortedList.removeValue(0);
+    assertEquals(sortedList.getCount(), 0);
   },
 });
 
