@@ -19,7 +19,10 @@ export class VNetBuffer {
   }
 
   private computeCapacity(capacity: number): number {
-    return 1 << 32 - Math.clz32(capacity - 1);
+    if (capacity <= 0) {
+      return 0;
+    }
+    return 1 << Math.ceil(Math.log2(capacity));
   }
   private ensureCapacity(capacity: number): void {
     if (capacity <= this.getCapacity()) {
