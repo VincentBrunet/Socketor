@@ -64,6 +64,19 @@ export class VNetBuffer {
     this.setPosition(end);
     return textDecoder.decode(this.getMemory(start, end));
   }
+  public readArray<Value>(
+    readItem: (buffer: VNetBuffer) => Value,
+  ): Value[] | undefined {
+    const count = this.readInt32();
+    if (count < 0) {
+      return undefined;
+    }
+    const array: Value[] = [];
+    for (let i = 0; i < count; i++) {
+      array.push(readItem(this));
+    }
+    return array;
+  }
 
   public writeInt32(value: number): void {
     const start = this.getPosition();
@@ -91,5 +104,18 @@ export class VNetBuffer {
     const dataEnd = dataStart + dataBytes;
     this.writeInt32(dataBytes);
     this.setPosition(dataEnd);
+  }
+  public writeArray<Value>(
+    values: Value[] | undefined,
+    writeItem: (buffer: VNetBuffer, value: Value) => void,
+  ): void {
+    if (values === undefined) {
+      this.writeInt32(-1);
+      return;
+    }
+    this.writeInt32(values.length);
+    for (let i = 0; i < values.length; i++) {
+      writeItem(this, values[i]);
+    }
   }
 }

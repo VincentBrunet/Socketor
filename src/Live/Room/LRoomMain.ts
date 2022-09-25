@@ -95,6 +95,9 @@ export class LRoomMain {
       case LRoomPacket.KickUp: {
         return await this._reader.readPacketKickUp(guest, buffer);
       }
+      case LRoomPacket.InfoUp: {
+        return await this._reader.readPacketInfoUp(guest, buffer);
+      }
       case LRoomPacket.JoinUp: {
         return await this._reader.readPacketJoinUp(guest, buffer);
       }

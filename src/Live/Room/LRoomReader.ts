@@ -73,6 +73,25 @@ export class LRoomReader {
     return await this._writer.writePacketKickDown(sender, receiver);
   }
 
+  public async readPacketInfoUp(
+    sender: LRoomGuest,
+    buffer: VNetBuffer,
+  ): Promise<void> {
+    const guestsUnfiltered = buffer.readArray((buffer) => {
+      const guestId = buffer.readInt32();
+      return this._data.getGuest(guestId);
+    });
+    const guestsFiltered = [];
+    if (guestsUnfiltered) {
+      for (const guestUnfiltered of guestsUnfiltered) {
+        if (guestUnfiltered !== undefined) {
+          guestsFiltered.push(guestUnfiltered);
+        }
+      }
+    }
+    return await this._writer.writePacketInfoDown(sender, guestsFiltered);
+  }
+
   public async readPacketJoinUp(
     sender: LRoomGuest,
     buffer: VNetBuffer,

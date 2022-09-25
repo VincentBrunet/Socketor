@@ -45,6 +45,25 @@ export class LRoomWriter {
     });
   }
 
+  public async writePacketInfoDown(
+    receiver: LRoomGuest,
+    guests: LRoomGuest[],
+  ): Promise<void> {
+    await receiver.writeMessage((buffer: VNetBuffer) => {
+      buffer.writeInt32(LRoomPacket.InfoDown);
+      buffer.writeArray(
+        guests,
+        (buffer: VNetBuffer, guest: LRoomGuest) => {
+          buffer.writeInt32(guest.getId());
+          buffer.writeInt32(guest.getAliveTimeMs() ?? -1);
+          buffer.writeInt32(guest.getAlivePingMs() ?? -1);
+          buffer.writeString(guest.getIdentity()?.getUsername());
+          buffer.writeString(guest.getIdentity()?.getCapabilities());
+        },
+      );
+    });
+  }
+
   public async writePacketJoinDown(
     receiver: LRoomGuest,
     channel: LRoomChannel,
@@ -76,10 +95,6 @@ export class LRoomWriter {
       buffer.writeInt32(guests.length);
       for (const guest of guests) {
         buffer.writeInt32(guest.getId());
-        buffer.writeInt32(guest.getAliveTimeMs() ?? -1);
-        buffer.writeInt32(guest.getAlivePingMs() ?? -1);
-        buffer.writeString(guest.getIdentity()?.getUsername());
-        buffer.writeString(guest.getIdentity()?.getCapabilities());
       }
     });
   }

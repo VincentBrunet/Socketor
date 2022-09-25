@@ -98,5 +98,20 @@ Deno.test({
     assertEquals(-1, sortedList.findIndexOfValue("000"));
     assertEquals(3, sortedList.findIndexOfValue("zzzzz"));
     assertEquals(-1, sortedList.findIndexOfValue("?????"));
+
+    sortedList.removeValue("123");
+    assertEquals(sortedList.getValueAtIndex(0), "-");
+    assertEquals(sortedList.getValueAtIndex(1), "abc");
+    assertEquals(sortedList.getValueAtIndex(2), "zzzzz");
+
+    sortedList.removeValue("-");
+    assertEquals(sortedList.getValueAtIndex(0), "abc");
+    assertEquals(sortedList.getValueAtIndex(1), "zzzzz");
+
+    sortedList.removeValue("zzzzz");
+    assertEquals(sortedList.getValueAtIndex(0), "abc");
+
+    sortedList.removeValue("abc");
+    assertEquals(sortedList.getCount(), 0);
   },
 });

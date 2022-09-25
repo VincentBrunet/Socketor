@@ -8,6 +8,8 @@ export enum LRoomPacket {
   AuthDown = 2011,
   KickUp = 2030,
   KickDown = 2031,
+  InfoUp = 2040,
+  InfoDown = 2041,
 
   JoinUp = 3030,
   JoinDown = 3031,

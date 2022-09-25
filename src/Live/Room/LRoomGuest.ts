@@ -63,7 +63,7 @@ export class LRoomGuest {
   }
 
   public addChannel(channel: LRoomChannel): void {
-    if (this._channels.containsValue(channel)) {
+    if (!this._channels.containsValue(channel)) {
       this._channels.insertValue(channel);
     }
   }
@@ -75,7 +75,7 @@ export class LRoomGuest {
   }
 
   public addKick(sender: LRoomGuest): void {
-    if (this._kicks.containsValue(sender)) {
+    if (!this._kicks.containsValue(sender)) {
       this._kicks.insertValue(sender);
     }
   }
