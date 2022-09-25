@@ -18,10 +18,10 @@ export class VNetBuffer {
     return this._array.subarray(start, end);
   }
 
-  public computeCapacity(capacity: number): number {
+  private computeCapacity(capacity: number): number {
     return 1 << 32 - Math.clz32(capacity - 1);
   }
-  public ensureCapacity(capacity: number): void {
+  private ensureCapacity(capacity: number): void {
     if (capacity <= this._array.length) {
       return;
     }

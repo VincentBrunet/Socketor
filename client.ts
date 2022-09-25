@@ -41,15 +41,29 @@ async function main(): Promise<void> {
   await reader.readMessages(async (inputBuffer: VNetBuffer) => {
     const packet = inputBuffer.readInt32();
     switch (packet) {
+      case LRoomPacket.InvalidDown: {
+        console.log("unknown packet", packet, inputBuffer.readString());
+        return;
+      }
       case LRoomPacket.AuthDown: {
         console.log("Connected!", "myId:", inputBuffer.readInt32());
         return;
       }
-      case LRoomPacket.KeepaliveDown: {
-        await writer.writeMessage((outputBuffer: VNetBuffer): void => {
-          outputBuffer.writeInt32(LRoomPacket.KeepaliveUp);
-          outputBuffer.writeInt32(inputBuffer.readInt32());
+      case LRoomPacket.KickDown: {
+        console.log("Kicked request", "toward:", inputBuffer.readInt32());
+        return;
+      }
+      case LRoomPacket.InfoDown: {
+        const guests = inputBuffer.readArray((inputBuffer: VNetBuffer) => {
+          return {
+            id: inputBuffer.readInt32(),
+            aliveTimeMs: inputBuffer.readInt32(),
+            alivePingMs: inputBuffer.readInt32(),
+            identityUsername: inputBuffer.readString(),
+            identityCapabilities: inputBuffer.readString(),
+          };
         });
+        console.log("Info", "received:", guests);
         return;
       }
       case LRoomPacket.JoinDown: {
@@ -59,28 +73,24 @@ async function main(): Promise<void> {
       }
       case LRoomPacket.LeaveDown: {
         const channelId = inputBuffer.readInt32();
-        console.log("joined channel", channelId);
+        console.log("Left channel", channelId);
         return;
       }
       case LRoomPacket.ListDown: {
         const channel = inputBuffer.readInt32();
-        const counter = inputBuffer.readInt32();
-        console.log("--", "channel", channel, "->", counter, "guests");
-        for (let i = 0; i < counter; i++) {
-          console.log(
-            "guest",
-            "id",
-            inputBuffer.readInt32(),
-            "alive time",
-            inputBuffer.readInt32(),
-            "alive ping",
-            inputBuffer.readInt32(),
-            "username",
-            inputBuffer.readString(),
-            "capabilities",
-            inputBuffer.readString(),
+        const guestsIds = inputBuffer.readArray((inputBuffer: VNetBuffer) => {
+          return inputBuffer.readInt32();
+        });
+        console.log("List", "channel", channel, "->", "guestsIds", guestsIds);
+        await writer.writeMessage((outputBuffer: VNetBuffer): void => {
+          outputBuffer.writeInt32(LRoomPacket.InfoUp);
+          outputBuffer.writeArray(
+            guestsIds,
+            (outputBuffer: VNetBuffer, guestId: number) => {
+              outputBuffer.writeInt32(guestId);
+            },
           );
-        }
+        });
         return;
       }
       case LRoomPacket.BroadcastDown: {
@@ -96,8 +106,11 @@ async function main(): Promise<void> {
         console.log("whisper received from", senderId, message);
         return;
       }
-      case LRoomPacket.InvalidDown: {
-        console.log("unknown packet", packet, inputBuffer.readString());
+      case LRoomPacket.KeepaliveDown: {
+        await writer.writeMessage((outputBuffer: VNetBuffer): void => {
+          outputBuffer.writeInt32(LRoomPacket.KeepaliveUp);
+          outputBuffer.writeInt32(inputBuffer.readInt32());
+        });
         return;
       }
     }
