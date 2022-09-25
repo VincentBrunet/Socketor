@@ -22,7 +22,7 @@ export class VNetBuffer {
     return 1 << 32 - Math.clz32(capacity - 1);
   }
   private ensureCapacity(capacity: number): void {
-    if (capacity <= this._array.length) {
+    if (capacity <= this.getCapacity()) {
       return;
     }
     const lastArray = this._array;
