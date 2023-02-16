@@ -63,12 +63,13 @@ export class VNetWriter {
     try {
       buffer.setPosition(0);
       buffer.writeInt32(0);
+      const start = buffer.getPosition();
       await pending.serializer(buffer);
-      const position = buffer.getPosition();
-      const bytes = position - 4;
+      const end = buffer.getPosition();
+      const bytes = end - start;
       buffer.setPosition(0);
       buffer.writeInt32(bytes);
-      await this.writeBuffer(buffer, position);
+      await this.writeFromBuffer(buffer, end);
       pending.resolve();
     } catch (error) {
       pending.reject(error);
@@ -77,7 +78,7 @@ export class VNetWriter {
     }
   }
 
-  private async writeBuffer(
+  private async writeFromBuffer(
     buffer: VNetBuffer,
     bytes: number,
   ): Promise<void> {
@@ -86,7 +87,7 @@ export class VNetWriter {
       const memory = buffer.getMemory(sum, bytes);
       const counter = await this._connection.write(memory);
       if (counter <= 0) {
-        throw new Error("Unable to write: " + counter);
+        throw new Error("Unable to write " + bytes + " bytes");
       }
       sum += counter;
     }

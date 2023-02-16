@@ -32,9 +32,9 @@ export class LRoomGuest {
     this._alivePingMs = undefined;
     this._identity = undefined;
     this._channels = new VCoreListSorted<LRoomChannel>(
-      LRoomGuest.priorityChannel,
+      LRoomGuest.rankingChannel,
     );
-    this._kicks = new VCoreListSorted<LRoomGuest>(LRoomGuest.priorityGuest);
+    this._kicks = new VCoreListSorted<LRoomGuest>(LRoomGuest.rankingGuest);
   }
 
   public getId(): number {
@@ -101,10 +101,10 @@ export class LRoomGuest {
     return this._connection.close();
   }
 
-  private static priorityChannel(channel: LRoomChannel): number {
+  private static rankingChannel(channel: LRoomChannel): number {
     return channel.getId();
   }
-  private static priorityGuest(guest: LRoomGuest): number {
+  private static rankingGuest(guest: LRoomGuest): number {
     return guest.getId();
   }
 }

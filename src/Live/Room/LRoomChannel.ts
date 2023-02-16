@@ -7,7 +7,7 @@ export class LRoomChannel {
 
   constructor(id: number) {
     this._id = id;
-    this._guests = new VCoreListSorted<LRoomGuest>(LRoomChannel.priorityGuest);
+    this._guests = new VCoreListSorted<LRoomGuest>(LRoomChannel.rankingGuest);
   }
 
   public getId(): number {
@@ -26,7 +26,7 @@ export class LRoomChannel {
     return [...this._guests.getValues()];
   }
 
-  private static priorityGuest(guest: LRoomGuest): number {
+  private static rankingGuest(guest: LRoomGuest): number {
     return guest.getId();
   }
 }

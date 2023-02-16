@@ -1,9 +1,9 @@
 export class VCoreListSorted<V> implements Iterable<V> {
-  private _priority: (v: V) => number;
+  private _ranking: (v: V) => number;
   private _storage: V[];
 
-  public constructor(priority: (v: V) => number) {
-    this._priority = priority;
+  public constructor(ranking: (v: V) => number) {
+    this._ranking = ranking;
     this._storage = [];
   }
 
@@ -12,8 +12,8 @@ export class VCoreListSorted<V> implements Iterable<V> {
   }
 
   public insertValue(value: V): void {
-    const priority = this._priority(value);
-    const indexAfter = this.findIndexAfterPriority(priority);
+    const rank = this._ranking(value);
+    const indexAfter = this.findIndexAfterRank(rank);
     this._storage.splice(indexAfter, 0, value);
   }
 
@@ -29,9 +29,9 @@ export class VCoreListSorted<V> implements Iterable<V> {
   }
 
   public findIndexOfValue(value: V): number {
-    const priority = this._priority(value);
-    const indexBefore = this.findIndexBeforePriority(priority);
-    const indexAfter = this.findIndexAfterPriority(priority);
+    const rank = this._ranking(value);
+    const indexBefore = this.findIndexBeforeRank(rank);
+    const indexAfter = this.findIndexAfterRank(rank);
     for (let i = indexBefore; i < indexAfter; i++) {
       if (this._storage[i] === value) {
         return i;
@@ -44,15 +44,15 @@ export class VCoreListSorted<V> implements Iterable<V> {
     return this.findIndexOfValue(value) >= 0;
   }
 
-  public findIndexBeforePriority(priority: number): number {
-    return this.findIndexWithPriority(priority, VCoreListSorted.comparerBefore);
+  public findIndexBeforeRank(rank: number): number {
+    return this.findIndexWithRank(rank, VCoreListSorted.comparerBefore);
   }
-  public findIndexAfterPriority(priority: number): number {
-    return this.findIndexWithPriority(priority, VCoreListSorted.comparerAfter);
+  public findIndexAfterRank(rank: number): number {
+    return this.findIndexWithRank(rank, VCoreListSorted.comparerAfter);
   }
 
-  private findIndexWithPriority(
-    priority: number,
+  private findIndexWithRank(
+    rank: number,
     comparer: (a: number, b: number) => boolean,
   ): number {
     let indexStart = 0;
@@ -63,8 +63,8 @@ export class VCoreListSorted<V> implements Iterable<V> {
       if (valueMid === undefined) {
         break;
       }
-      const priorityMid = this._priority(valueMid);
-      if (comparer(priorityMid, priority)) {
+      const rankMid = this._ranking(valueMid);
+      if (comparer(rankMid, rank)) {
         indexStart = indexMid + 1;
       } else {
         indexEnd = indexMid;

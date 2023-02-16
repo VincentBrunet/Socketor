@@ -17,21 +17,21 @@ Deno.test({
     assertEquals(sortedList.getValueAtIndex(2), 0);
     assertEquals(sortedList.getValueAtIndex(3), 42);
 
-    assertEquals(sortedList.findIndexBeforePriority(-43), 0);
-    assertEquals(sortedList.findIndexBeforePriority(-42), 0);
-    assertEquals(sortedList.findIndexBeforePriority(-41), 1);
-    assertEquals(sortedList.findIndexBeforePriority(0), 1);
-    assertEquals(sortedList.findIndexBeforePriority(1), 3);
-    assertEquals(sortedList.findIndexBeforePriority(42), 3);
-    assertEquals(sortedList.findIndexBeforePriority(43), 4);
+    assertEquals(sortedList.findIndexBeforeRank(-43), 0);
+    assertEquals(sortedList.findIndexBeforeRank(-42), 0);
+    assertEquals(sortedList.findIndexBeforeRank(-41), 1);
+    assertEquals(sortedList.findIndexBeforeRank(0), 1);
+    assertEquals(sortedList.findIndexBeforeRank(1), 3);
+    assertEquals(sortedList.findIndexBeforeRank(42), 3);
+    assertEquals(sortedList.findIndexBeforeRank(43), 4);
 
-    assertEquals(sortedList.findIndexAfterPriority(-43), 0);
-    assertEquals(sortedList.findIndexAfterPriority(-42), 1);
-    assertEquals(sortedList.findIndexAfterPriority(-41), 1);
-    assertEquals(sortedList.findIndexAfterPriority(0), 3);
-    assertEquals(sortedList.findIndexAfterPriority(1), 3);
-    assertEquals(sortedList.findIndexAfterPriority(42), 4);
-    assertEquals(sortedList.findIndexAfterPriority(43), 4);
+    assertEquals(sortedList.findIndexAfterRank(-43), 0);
+    assertEquals(sortedList.findIndexAfterRank(-42), 1);
+    assertEquals(sortedList.findIndexAfterRank(-41), 1);
+    assertEquals(sortedList.findIndexAfterRank(0), 3);
+    assertEquals(sortedList.findIndexAfterRank(1), 3);
+    assertEquals(sortedList.findIndexAfterRank(42), 4);
+    assertEquals(sortedList.findIndexAfterRank(43), 4);
 
     assertEquals(-1, sortedList.findIndexOfValue(-43));
     assertEquals(0, sortedList.findIndexOfValue(-42));
@@ -73,21 +73,21 @@ Deno.test({
     assertEquals(sortedList.getValueAtIndex(2), "123");
     assertEquals(sortedList.getValueAtIndex(3), "zzzzz");
 
-    assertEquals(sortedList.findIndexBeforePriority(0), 0);
-    assertEquals(sortedList.findIndexBeforePriority(1), 0);
-    assertEquals(sortedList.findIndexBeforePriority(2), 1);
-    assertEquals(sortedList.findIndexBeforePriority(3), 1);
-    assertEquals(sortedList.findIndexBeforePriority(4), 3);
-    assertEquals(sortedList.findIndexBeforePriority(5), 3);
-    assertEquals(sortedList.findIndexBeforePriority(6), 4);
+    assertEquals(sortedList.findIndexBeforeRank(0), 0);
+    assertEquals(sortedList.findIndexBeforeRank(1), 0);
+    assertEquals(sortedList.findIndexBeforeRank(2), 1);
+    assertEquals(sortedList.findIndexBeforeRank(3), 1);
+    assertEquals(sortedList.findIndexBeforeRank(4), 3);
+    assertEquals(sortedList.findIndexBeforeRank(5), 3);
+    assertEquals(sortedList.findIndexBeforeRank(6), 4);
 
-    assertEquals(sortedList.findIndexAfterPriority(0), 0);
-    assertEquals(sortedList.findIndexAfterPriority(1), 1);
-    assertEquals(sortedList.findIndexAfterPriority(2), 1);
-    assertEquals(sortedList.findIndexAfterPriority(3), 3);
-    assertEquals(sortedList.findIndexAfterPriority(4), 3);
-    assertEquals(sortedList.findIndexAfterPriority(5), 4);
-    assertEquals(sortedList.findIndexAfterPriority(6), 4);
+    assertEquals(sortedList.findIndexAfterRank(0), 0);
+    assertEquals(sortedList.findIndexAfterRank(1), 1);
+    assertEquals(sortedList.findIndexAfterRank(2), 1);
+    assertEquals(sortedList.findIndexAfterRank(3), 3);
+    assertEquals(sortedList.findIndexAfterRank(4), 3);
+    assertEquals(sortedList.findIndexAfterRank(5), 4);
+    assertEquals(sortedList.findIndexAfterRank(6), 4);
 
     assertEquals(-1, sortedList.findIndexOfValue(""));
     assertEquals(0, sortedList.findIndexOfValue("-"));
